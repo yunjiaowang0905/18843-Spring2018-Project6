@@ -3,6 +3,9 @@ from scipy.linalg import expm, solve
 from scipy.sparse import bsr_matrix
 from getA_c import getA_c
 
+# Result path
+RESULT_PATH = "../result/gt_40_upd100_sep2sw_tlenhis3_sr16_tr1_cn29_early/gt_40_upd100_sep2_tlenhis3_rangeLim0_ann_dd_gp.mat"
+
 n_time = 515
 n_lat = 16
 n_lon = 64

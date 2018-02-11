@@ -1,11 +1,12 @@
 import numpy as np
 from scipy.linalg import expm, solve
 from scipy.sparse import bsr_matrix
-from .getA_c import getA_c
-from .cvx_solve_u import cvx_solve_u
+from scipy.io import loadmat
+from getA_c import getA_c
+from cvx_solve_u import cvx_solve_u
 
 def get_par2(K, vx, vy, l, dt, x_cell):
-    _, m, n = x_cell.shape
+    m, n = cells[0].shape
     V_x = np.zeros((m,n)) + vx
     V_y = np.zeros((m,n)) + vy
 
@@ -24,3 +25,19 @@ def get_par2(K, vx, vy, l, dt, x_cell):
     u = cvx_solve_u(coe_matrix, B, x_cell)
     u_mat = np.transpose(np.reshape(u, (n,m)))
     return u_mat
+
+# For testing get_par2()
+if __name__ == "__main__":
+    K = 100
+    vx = vy = 0
+    l = 500
+    dt = 3600
+
+    x_cell = loadmat('../x_cell.mat')['x_cell']
+
+    cells = []
+    for c in x_cell:
+        cells.append(c[0])
+
+    u_mat = get_par2(K, vx, vy, l, dt, cells)
+    print(u_mat)
