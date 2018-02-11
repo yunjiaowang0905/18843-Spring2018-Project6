@@ -6,7 +6,7 @@ from getA_c import getA_c
 from cvx_solve_u import cvx_solve_u
 
 def get_par2(K, vx, vy, l, dt, x_cell):
-    m, n = cells[0].shape
+    m, n = x_cell[0].shape
     V_x = np.zeros((m,n)) + vx
     V_y = np.zeros((m,n)) + vy
 
