@@ -108,6 +108,26 @@ def set_data_upd_interp(i, value):
     global data_upd_interp
     data_upd_interp[i] = value
 
+def set_x_est_adp(value):
+    global x_est_adp
+    x_est_adp = value
+
+def set_P_w_adp(value):
+    global P_w_adp
+    P_w_adp = value
+
+def set_x_P_adp(value):
+    global x_P_adp
+    x_P_adp = value
+
+def set_u_mat_adp(value):
+    global u_mat_adp
+    u_mat_adp = value
+
+def set_pf_upd_flag_adp(value):
+    global pf_upd_flag_adp
+    pf_upd_flag_adp = value
+
 
 
 
