@@ -1,3 +1,14 @@
-Min_time: 0
-Max_time: 737060.0
 Min_time: 736786.0
+Max_time: 737060.0
+Min_co: 0.0
+Max_co: 100.0
+Min_co2: 400.0
+Max_co2: 700.0
+Min_no2: 0.0
+Max_no2: 100.0
+Min_pm2d5: 0.0
+Max_pm2d5: 1000.0
+Min_time_period: 0.0006944444
+Max_pm2d5_diff: 200.0
+
+
