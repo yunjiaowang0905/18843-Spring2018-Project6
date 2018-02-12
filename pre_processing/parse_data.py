@@ -79,6 +79,22 @@ def datetime2matlabdn(dt):
    frac_microseconds = dt.microsecond / (24.0 * 60.0 * 60.0 * 1000000.0)
    return mdn.toordinal() + frac_seconds + frac_microseconds
 
+def getPM2d5DiffsByCarID(path):
+    car_id = path[0:path.find('.')]
+    mat_contents = sio.loadmat(path)
+    list_per_car = pd.DataFrame(mat_contents['DATA'])
+    res = np.zeros(list_per_car.shape[0])
+    # Sort by time
+    list_per_car = list_per_car.sort_values(list_per_car.columns[0], ascending=True)
+    for i in range(list_per_car.shape[0]):
+        if i == 0:
+            continue
+        pre_pm2d5 = list_per_car[10].loc[i - 1]
+        cur_pm2d5 = list_per_car[10].loc[i]
+        res[i] = abs(cur_pm2d5 - pre_pm2d5)
+    np.savetxt(car_id + '_diffs_pm2d5.csv', res, delimiter=",")
+    return res
+
 # Get parameters
 params_fn = "parameters.yaml"
 params_f = open(params_fn)
@@ -100,6 +116,10 @@ list_a = filterTime(list_a, float(params['Min_time']), float(params['Max_time'])
 list_a = filterCO(list_a, float(params['Min_co']), float(params['Max_co']))
 list_a = filterCO2(list_a, float(params['Min_co2']), float(params['Max_co2']))
 list_a = filterNO2(list_a, float(params['Min_no2']), float(params['Max_no2']))
+
+# Get pm2d5 diffs for each car
+for path in paths:
+    getPM2d5DiffsByCarID(path)
 
 # Draw plots
 max_lantitude = list_a[4].max()
