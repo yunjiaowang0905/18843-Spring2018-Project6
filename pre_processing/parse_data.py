@@ -95,6 +95,25 @@ def getPM2d5DiffsByCarID(path):
     np.savetxt(car_id + '_diffs_pm2d5.csv', res, delimiter=",")
     return res
 
+def checkPM2D5ChangeRangeByCarID(path, min_time_period, max_pm2d5_diff):
+    car_id = path[0:path.find('.')]
+    mat_contents = sio.loadmat(path)
+    list_per_car = pd.DataFrame(mat_contents['DATA'])
+    list_per_car = list_per_car.sort_values(list_per_car.columns[0], ascending=True)
+    res = pd.DataFrame()
+    for i in range(list_per_car.shape[0]):
+        if i == 0:
+            continue
+        pre_time = list_per_car[4].loc[i - 1]
+        pre_pm2d5 = list_per_car[5].loc[i - 1]
+        cur_time = list_per_car[4].loc[i]
+        cur_pm2d5 = list_per_car[5].loc[i]
+        if cur_time - pre_time < min_time_period and abs(cur_pm2d5 - pre_pm2d5) > max_pm2d5_diff:
+            print(list_per_car[i])
+            res.append(list_per_car[i])
+    res.to_csv(car_id + '_checkPM2D5Change.csv', index=False)
+    return res
+
 # Get parameters
 params_fn = "parameters.yaml"
 params_f = open(params_fn)
@@ -120,6 +139,10 @@ list_a = filterNO2(list_a, float(params['Min_no2']), float(params['Max_no2']))
 # Get pm2d5 diffs for each car
 for path in paths:
     getPM2d5DiffsByCarID(path)
+
+# Check pm2d5 change range for each car
+for path in paths:
+    checkPM2D5ChangeRangeByCarID(path, float(params['Min_time_period']), float(params['Max_pm2d5_diff']))
 
 # Draw plots
 max_lantitude = list_a[4].max()
