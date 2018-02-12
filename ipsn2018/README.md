@@ -1,11 +1,11 @@
 # Code Structure
 
-'./conf' Configuration file in YML style
+`./conf` Configuration file in YML style
 
-'./data' raw Data and results.
+`./data` raw Data and results.
 
-'./model' Particle filter and baseline ML algorithm
+`./model` Particle filter and baseline ML algorithm
 
-'./util' Other helper module and functions
+`./util` Other helper module and functions
 
 
