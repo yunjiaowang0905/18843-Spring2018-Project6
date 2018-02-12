@@ -9,4 +9,6 @@ def sys_run(i_t):
     tmp[tmp >= config.pre_max_val] = config.pre_max_val
     config.set_data_upd_interp(i_t, tmp)
     # x_est_adp empty
+    if i_t < config.t_len_his + 1:
+        config.set_X0(config.get_data_upd_interp()[i_t])
     particle_filter_run(config.get_data_upd_interp()[i_t],config.get_pf_upd_flag_adp(),i_t,config.get_x_est_adp(),config.get_P_w_adp(),config.get_x_P_adp(),config.get_u_mat_adp())

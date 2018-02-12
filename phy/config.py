@@ -23,6 +23,7 @@ vx = 0
 vy = 0
 x_N_pf = 0.5710**2
 run_alg = 1
+V_pf = 0.3260
 
 def init():
     global coe_matrix
@@ -34,13 +35,15 @@ def init():
     global pf_upd_flag_adp
     pf_upd_flag_adp = np.zeros((n_time,16,64), dtype=np.float64) # unneccssary
     global x_est_adp
-    x_est_adp = [np.zeros((n_time,16,64), dtype=np.float64)]
+    x_est_adp = np.zeros((n_time,16,64), dtype=np.float64)
     global P_w_adp
-    P_w_adp = np.zeros((n_time,16,64), dtype=np.float64) # unneccssary
+    P_w_adp = np.zeros((n_time,100,16,64), dtype=np.float64) # unneccssary
     global x_P_adp
     x_P_adp = np.zeros((n_time,100,16,64), dtype=np.float64) # unneccssary
     global u_mat_adp
     u_mat_adp = np.zeros((n_time,16,64), dtype=np.float64) # unneccssary
+    global X0
+    X0 = np.zeros((16,64), dtype=np.float64)
 
     V_x = np.zeros((n_lat,n_lon)) + vx
     V_y = np.zeros((n_lat,n_lon)) + vy
@@ -89,6 +92,13 @@ def get_x_est_gp():
 
 def get_data_upd_interp():
     return data_upd_interp
+
+def get_X0():
+    return X0
+
+def set_X0(value):
+    global X0
+    X0 = value
 
 def set_x_est_gp(i, value):
     global x_est_gp
