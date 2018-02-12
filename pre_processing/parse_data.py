@@ -53,6 +53,26 @@ def filterNO2(df, min_no2, max_no2):
     print(df[~mask])
     return df[mask]
 
+def checkSpeedContinuity(df, max_speed):
+    res = getSpeedByTimeLatLon(df)
+    for i in range(res.shape):
+        if res[i] > max_speed:
+            print(df[i])
+
+def getSpeedByTimeLatLon(df):
+    res = np.zeros(df.shape[0])
+    for i in range(df.shape[0]):
+        if i == 0:
+            continue
+        pre_lat = df[4].loc[i - 1]
+        pre_lon = df[5].loc[i - 1]
+        cur_lat = df[4].loc[i]
+        cur_lon = df[5].loc[i]
+        coords_1 = (cur_lat, cur_lon)
+        coords_2 = (pre_lat, pre_lon)
+        res[i] = geopy.distance.vincenty(coords_1, coords_2).km
+    return res
+
 def datetime2matlabdn(dt):
    mdn = dt + timedelta(days = 366)
    frac_seconds = (dt-datetime.datetime(dt.year,dt.month,dt.day,0,0,0)).seconds / (24.0 * 60.0 * 60.0)
