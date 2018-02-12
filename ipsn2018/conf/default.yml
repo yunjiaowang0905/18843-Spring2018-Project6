@@ -1,0 +1,4 @@
+raw_data_file: "../data/raw_data.dat"
+num_car: 29
+start_date: "2016-12-22 11:00:00"
+end_date: "2016-01-12 22:00:00"
