@@ -28,19 +28,19 @@ def init():
     global coe_matrix
     coe_matrix = np.full((1024, 1024), 0)
     global x_est_gp
-    x_est_gp = np.zeros((n_time,16,64), dtype=np.object)
+    x_est_gp = np.zeros((n_time,16,64), dtype=np.float64)
     global data_upd_interp
-    data_upd_interp = np.zeros((n_time,16,64), dtype=np.object)
+    data_upd_interp = np.zeros((n_time,16,64), dtype=np.float64)
     global pf_upd_flag_adp
-    pf_upd_flag_adp = np.zeros((n_time,16,64), dtype=np.object) # unneccssary
+    pf_upd_flag_adp = np.zeros((n_time,16,64), dtype=np.float64) # unneccssary
     global x_est_adp
-    x_est_adp = np.zeros((n_time,16,64), dtype=np.object)
+    x_est_adp = [np.zeros((n_time,16,64), dtype=np.float64)]
     global P_w_adp
-    P_w_adp = np.zeros((n_time,16,64), dtype=np.object) # unneccssary
+    P_w_adp = np.zeros((n_time,16,64), dtype=np.float64) # unneccssary
     global x_P_adp
-    x_P_adp = np.zeros((n_time,100,16,64), dtype=np.object) # unneccssary
+    x_P_adp = np.zeros((n_time,100,16,64), dtype=np.float64) # unneccssary
     global u_mat_adp
-    u_mat_adp = np.zeros((n_time,16,64), dtype=np.object) # unneccssary
+    u_mat_adp = np.zeros((n_time,16,64), dtype=np.float64) # unneccssary
 
     V_x = np.zeros((n_lat,n_lon)) + vx
     V_y = np.zeros((n_lat,n_lon)) + vy
