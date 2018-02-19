@@ -1,4 +1,31 @@
-raw_data_file: "../data/raw_data.dat"
-num_car: 29
-start_date: "2016-12-22 11:00:00"
-end_date: "2016-01-12 22:00:00"
+sys:
+  file_str: "../data/raw_data.dat"
+  car_no: 29
+  date_min: "2016-12-22 11:00:00"
+  date_max: "2016-12-22 13:00:00"
+  t_min: 0
+  t_max: 24
+  rest_t: 1
+  lon_min: 113.8668
+  lon_max: 114.1538
+  lat_min: 22.5150
+  lat_max: 22.5868
+  res_s: 500
+  pct_gt: 0.4
+  pct_pred: 0
+  pct_corr: 1
+  pct_veri: 0
+  gas_max_val: 60
+  flag_range_lim: 0
+particle_filter:
+  x_N_pf: 0.5710
+  x_R_pf: 0.5710
+  N_pf: 100
+  alg_upd: 1
+  alg_sep: 2
+  t_len_his: 3
+  ver_re_err_th: 0.1
+  ver_var_th: 0.2
+  K: 100
+  vx: 0
+  vy: 0
