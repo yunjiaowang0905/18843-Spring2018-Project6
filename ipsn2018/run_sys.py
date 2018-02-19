@@ -70,6 +70,8 @@ class Scheduler():
             print(t_low)
             pf.run_iter(i_t)
             i_t += 1
+    def baseML_run(self):
+        pass
 
 
 if __name__ == "__main__":
@@ -87,8 +89,7 @@ if __name__ == "__main__":
 
     if execute_steps[1]:
         print '### 1. run baseline ML algorithms ###'
-        nn = neural_network(conf)
-        gp = gaussian_process(conf)
+        sess.baseML_run()
 
     if execute_steps[2]:
         print '### 2. run flag learn ###'
