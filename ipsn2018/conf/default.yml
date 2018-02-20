@@ -26,6 +26,7 @@ particle_filter:
   t_len_his: 3
   ver_re_err_th: 0.1
   ver_var_th: 0.2
+  gas_max_val: 60
   K: 100
   vx: 0
   vy: 0
