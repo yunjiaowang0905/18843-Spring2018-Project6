@@ -1,5 +1,6 @@
 __author__ = 'Nanshu Wang'
 import numpy as np
+import scipy.io
 
 class data_schema():
     def __init__(self, n_time):
@@ -64,8 +65,10 @@ class data_schema():
         pass
         # TODO
 
-    def load(self):
-        pass
-        # load([str_dir '/gt_',num2str(pct_gt*100),'_upd',num2str(pct_mat(2)*100),
-        # '_sep',num2str(alg_sep),'_tlenhis',num2str(t_len_his),
-        # '_rangeLim0_ann_dd_gp.mat'])
+    def load(self, DATA_DIR):
+        # TODO load data from specific directory
+        path = DATA_DIR + "/test/gt_40_upd100_sep2_tlenhis3_rangeLim0_ann_dd_gp.mat"
+        mat = scipy.io.loadmat(path)
+        for key, value in mat.iteritems():
+            if not key.startswith("__"):
+                setattr(self, key, [v[0] for v in value])

@@ -60,9 +60,9 @@ class Scheduler():
         self.eva_all_pf = np.zeros((self.n_time, 5, 3))
 
     def pf_run(self, conf):
-        self.data.load()
+        self.data.load(DATA_DIR)
         i_t = 0
-        pf = particle_filter(conf, self.res_t, self.res_s, self.n_lat, self.n_lat, self.data)
+        pf = particle_filter(conf, self.res_t, self.res_s, self.n_lat, self.n_lon, self.data)
 
         while i_t < self.n_time:
             t_low = self.date_min + timedelta(hours=i_t * self.res_t)
