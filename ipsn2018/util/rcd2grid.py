@@ -21,3 +21,4 @@ def rcd2grid(data_rcd, n_lat, n_lon, flag_empty):
                 if data_rcd_x_y:
                     smp_cnt[i_y][i_x] = len(data_rcd_x_y)
                     data_grid[i_y][i_x] = data_rcd_x_y[:][i_gas - 1]
+    return data_grid, smp_cnt
