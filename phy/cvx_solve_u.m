@@ -7,15 +7,13 @@ function u = cvx_solve_u(A_in, B_in, x_cell_in)
     B = double(reshape(xb,1024,1024));
     [x,y] = size(x_cell_in);
     x_cell = cell([y 1]);
-    disp(y);
     for i=1:y
         cell_ele = x_cell_in{1,i};
         cell_ele_li = [cell_ele{:}]; 
         cell_ele_mat = cell2mat(cell_ele_li); 
         x_cell{i,1} = double(reshape(cell_ele_mat,16,64));
-        disp(size(x_cell{i,1}));
     end
-    
+
     T = length(x_cell);
     n = numel(x_cell{1});
     Xvec = [];

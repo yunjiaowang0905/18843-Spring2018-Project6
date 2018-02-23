@@ -9,9 +9,6 @@ import matlab.engine
 
 def get_par2(K, vx, vy, l, dt, x_cell):
     m, n = x_cell[0].shape
-    print(len(x_cell.tolist()))
-    print(len(x_cell[0].tolist()))
-    print(len(x_cell[0][0].tolist()))
     V_x = np.zeros((m,n)) + vx
     V_y = np.zeros((m,n)) + vy
 
