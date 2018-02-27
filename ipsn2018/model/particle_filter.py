@@ -3,6 +3,7 @@ __author__ = 'Nanshu Wang'
 
 import numpy as np
 import sys, os
+from random import random
 from scipy.linalg import expm, solve
 from scipy.sparse import bsr_matrix
 from scipy.spatial.distance import cdist
@@ -70,10 +71,7 @@ class particle_filter(object):
         self.flag_cal_feature = 1
 
     def generate_observation(self, i_t):
-        tmp = self.data.x_est_gp[i_t]
-        tmp[tmp<0] = 0
-        tmp[tmp>self.pre_max_val] = self.pre_max_val
-        self.data.data_upd_interp[i_t] = tmp
+        self.data.data_upd_interp[i_t] = limit_range(self.data.x_est_gp[i_t], 0, self.pre_max_val)
 
     def predict(self, i_t):
         est_history = self.data.x_est_adp[i_t-self.t_len_his:i_t-1]
@@ -181,20 +179,36 @@ class particle_filter(object):
         return pf_upd_flag
 
     def update(self, i_t):
-        # TODO tile with repmat
-        pf_upd_flag_new = np.title(self.data.pf_upd_flag_adp[i_t][0] , 1, 1, self.N_pf)
-        idx = np.nonzero(pf_upd_flag_new==1)
-        # TODO title with repmat, what is z
-        z = np.title(z,1,1, self.N_pf)
+        pf_upd_flag_new = np.tile(self.data.pf_upd_flag_adp[i_t][0] , (1, 1, self.N_pf))
+        idx = np.nonzero(pf_upd_flag_new == 1)
+        z = np.tile(self.data.data_upd_interp[i_t], (1,1, self.N_pf))
         P_w_tmp = np.zeros(self.n_lat, self.n_lon, self.N_pf)
         P_w_tmp[idx] = (1/np.sqrt(2 * np.pi * self.x_R_pf)) * \
-                       np.exp(-(z(idx) - self.data.x_P_update[idx]) .^ 2 / (2 * self.x_R_pf))
+                       np.exp(-(z[idx] - self.data.x_P_update[idx]) ** 2 / (2 * self.x_R_pf))
         P_w_tmp = P_w_tmp + 1e-15
-        P_w_tmp = P_w_tmp / np.title(sum(P_w_tmp,3),[1,1,100])
-        pw[i_t] = P_w_tmp
+        P_w_tmp = P_w_tmp / np.tile(sum(P_w_tmp,3),[1,1,100])
+        self.data.P_w_adp[i_t] = P_w_tmp
 
     def resample(self, i_t):
-        pass
+        self.data.x_P_adp[i_t, 0] = self.data.x_P_update
+        row, col = np.nonzero(self.data.pf_upd_flag_apd[i_t, 0] == 1)
+        # xp{i_t,1} = x_P_update;
+        # [row,col] = find(pf_upd_flag_cur{i_t,1}==1);
+        for id in range(row.shape[0]):
+            i_x = col[id]
+            i_y = row[id]
+            P_w_cur = self.data.P_w_adp[i_y, i_x].reshape(1,1,self.N_pf).copy()
+            x_P_update_cur = self.data.x_P_update[i_y, i_x]
+            for i_pf in range(self.N_pf):
+                rand = random()
+                self.data.x_P_adp[i_t,0,i_y,i_x,i_pf] = x_P_update_cur[rand <= np.cumsum(P_w_cur),1]
+
+        if self.flag_range_lim==1:
+            # this is only for CO value range limitation
+            self.data.x_P_adp[i_t,0] = limit_range(self.data.x_P_adp[i_t,0], 0, self.pre_max_val)
+
+        # weighted average
+        self.data.x_est_adp[i_t,0] = np.mean(self.data.x_est_adp[i_t], axis=3)
 
     def initialize_stage(self, i_t):
         X0 = self.data.data_upd_interp[i_t]
