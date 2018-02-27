@@ -9,3 +9,8 @@
 `./util` Other helper module and functions
 
 
+# requirements
+
+* cvxpy
+* numpy
+* scipy
