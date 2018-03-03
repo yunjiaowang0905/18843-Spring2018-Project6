@@ -24,7 +24,7 @@ def baseML(data_cur, i_t, n_lat, n_lon, alg_sep, pct_mat, flag_empty, pre_max_va
         data.smp_cnt_gt[i_t] = data.smp_cnt_gt[i_t - 1]
 
     # get result for data driven method
-    data_tr = [sum(x) for x in zip(data.data_pre[i_t], data.data_udp[i_t], data.data_ver[i_t])]
+    data_tr = [sum(x) for x in zip(data.data_pre[i_t], data.data_udp[i_t], data.data_ver[i_t])] # for numpy array: data.data_pre[i_t] + data.data_udp[i_t] + data.data_ver[i_t]
     data.x_est_dd = get_dd_result(data_tr)
     # TODO:implement get_dd_redult
 
@@ -59,7 +59,7 @@ def baseML(data_cur, i_t, n_lat, n_lon, alg_sep, pct_mat, flag_empty, pre_max_va
             idx = find(smp_cnt_gt_cur > 0)
             # TODO:implement find function
             if idx:
-                row,col = np.nonzeros(idx)
+                row,col = np.nonzero(idx)
                 # TODO: modify data structure for neural network
                 # inputs_cur = [t_cur * ones(1,length(idx));row';col']
                 # inputs = [inputs,inputs_cur];
