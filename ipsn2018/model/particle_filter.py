@@ -56,8 +56,8 @@ class particle_filter(object):
         self.V_x = np.zeros((n_lat, n_lon)) + self.vx
         self.V_y = np.zeros((n_lat, n_lon)) + self.vy
         self.A = getA_c(self.K, res_s, self.V_x, self.V_y)
-        self.A -= np.diag(np.sum(self.A, axis=1))
-        self.A -= np.diag(np.diag(self.A)) * 1e-6
+        self.A = self.A - np.diag(np.sum(self.A, axis=1))
+        self.A = self.A - np.diag(np.diag(self.A)) * 1e-6
 
         A1 = expm(self.A * self.dt)
         self.B = solve(self.A, A1 - np.eye(A1.shape[0]))
@@ -164,7 +164,7 @@ class particle_filter(object):
                 idx = self.data.ver_var_adp[i_t-1] >= self.ver_var_th
                 pf_upd_flag[idx] = 1
 
-                idx = np.nonzeros(pf_upd_flag > 0)
+                idx = np.nonzero(pf_upd_flag > 0)
                 se = generate_binary_structure(2, 3) # se = strel('square',3);
                 pf_upd_flag[idx] = binary_dilation(pf_upd_flag[idx], structure=se) # pf_upd_flag[idx] = imdilate(pf_upd_flag[idx],se);
                 # use ver_re_err and ver_var at i_t - 1 to get the update flag matrix
@@ -212,12 +212,12 @@ class particle_filter(object):
 
     def initialize_stage(self, i_t):
         X0 = self.data.data_upd_interp[i_t]
-        # x_P_adp has dimension of (N_pf, n_lat, n_lon) = (100,16,64)
-        self.data.x_P_adp[i_t] = np.tile(X0, (100, 1, 1)) + \
+        # x_P_adp has dimension of (N_pf, n_lat, n_lon) = (100,16,64) this is different from original matlab (16,64,100)
+        self.data.x_P_adp[i_t] = np.tile(X0, (self.N_pf, 1, 1)) + \
                                  np.sqrt(self.V_pf) * np.random.randn(self.N_pf, self.n_lat, self.n_lon)
         self.data.x_est_adp[i_t] = X0
-        self.data.P_w_adp[i_t] = np.ones((100, self.n_lat, self.n_lon)) / 100
-        self.data.pf_upd_flag_adp[i_t] = np.zeros((self.n_lat, self.n_lon))
+        self.data.P_w_adp[i_t] = np.ones((self.N_pf, self.n_lat, self.n_lon)) / self.N_pf
+        self.data.pf_upd_flag_apt[i_t] = np.zeros((self.n_lat, self.n_lon))
         print("Initialization iteration")
 
     def flag_empty(self, i_t):
