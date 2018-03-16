@@ -43,6 +43,7 @@ def interpolateAllData(mat_filename, mat_interp_filename):
     savemat(mat_interp_filename, {'data_interp_all': data_interp})
 
 if __name__ == "__main__":
+    # TODO: change these file paths if necessary
     mat_filename = '../matdata/data_all.mat'
     mat_interp_filename = '../matdata/data_interp_all.mat'
 

@@ -24,8 +24,10 @@ def csv2mat(csv_path, mat_filename):
 
 
 if __name__ == "__main__":
+    # TODO: change these file paths if necessary
     csv_path = '../../distribution_Res.csv'
     mat_filename = '../matdata/data_all.mat'
+    
     csv2mat(csv_path, mat_filename)
 
     
