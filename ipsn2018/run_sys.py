@@ -19,6 +19,7 @@ import os
 import sys
 import yaml
 import docopt
+import scipy.io
 import numpy as np
 from datetime import datetime, timedelta
 
@@ -34,8 +35,11 @@ DATA_DIR = ROOT_DIR + "/data"
 
 class Scheduler():
     def __init__(self, conf):
+        self.car_no = conf['car_no']
         self.date_min = datetime.strptime(conf['date_min'], "%Y-%m-%d %H:%M:%S")
         self.date_max = datetime.strptime(conf['date_max'], "%Y-%m-%d %H:%M:%S")
+        self.date_min_num = date_min.toordinal() + 366
+        self.date_max_num = date_max.toordinal() + 366
         self.res_t = conf['rest_t']
         self.n_time = (self.date_max-self.date_min).seconds / 3600 / self.res_t
 
@@ -72,7 +76,34 @@ class Scheduler():
             i_t += 1
 
     def baseML_run(self):
-        pass
+        # select the data for pollution map reconstruction and calibrate the data
+        data_slt, xi, yi = data_pre_slt(DATA_DIR+ "/data/201701/raw/slt_raw_area_time_early.mat"）
+        # TODO: implement data_pre_slt()
+
+        # get the data from monitoring station
+        station_info = scipy.io.loadmat(DATA_DIR + "/data/station_info.mat")
+        station_data = scipy.io.loadmat(DATA_DIR + "/data/station_data.mat")
+        station_info_lon = np.asarray([v[1] for v in station_info['station_info']]).flatten()
+        station_info_lat = np.asarray([v[2] for v in station_info['station_info']]).flatten()
+        station_loc = np.c_[station_info_lon, station_info_lat]
+        station_loc_idx = np.nonzero((station_loc[:,0] >= self.lon_min) & (station_loc[:,0] <= self.lon_max) \
+            & (station_loc[:,1] >= self.lat_min) & (station_loc[:,1] <= self.lat_max))
+        station_data_loc = station_data['station_data'][:, np.r_[0, station_loc_idx[0] + 2]]
+        station_data_idx = np.nonzero((station_data_loc[:,0] >= date_min_num) & (station_data_loc[:,0] <= date_max_num))
+        station_data_slt = station_data_loc[station_data_idx[0],:]
+        pre_max_val = np.max(station_data_slt[:,1:len(station_data_slt[0])])
+        idx_station_v = np.zeros(np.shape(station_loc_idx))
+        idx_sta = np.zeros(self.n_lat, self.n_lon) # n_lon=64, n_lat=16
+        sta_loc = np.zeros((np.shape(station_loc_idx)[1], 2))
+
+        #TODO:test
+        for i in range(0, np.shape(station_loc_idx)[1]):
+            loc_cur = station_loc[station_loc_idx[0][i],:]
+            a, x_cur = min(abs(loc_cur[0] - xi))
+            b, y_cur = min(abs(loc_cur[1] - yi))
+            idx_station_v(i,1)= (x_cur-1)*n_lat+y_cur
+            idx_sta(y_cur,x_cur) = 1
+            sta_loc[i,:] = [y_cur, x_cur]
 
 
 if __name__ == "__main__":

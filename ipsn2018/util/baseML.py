@@ -16,7 +16,7 @@ def baseML(data_cur, i_t, n_lat, n_lon, alg_sep, pct_mat, flag_empty, pre_max_va
     # seperate data into 4 parts
     data.data_gt[i_t], data.data_pre[i_t], data.data_upd[i_t], data.data_ver[i_t], \
     data.smp_cnt_gt[i_t], data.smp_cnt_pre[i_t], data.smp_cnt_upd[i_t], data.smp_cnt_ver[i_t] \
-    = data_sep(data_grid_cur, data.smp_cnt[i_t], alg_sep, i_t, pct_gt, n_lat, n_lon, pct_mat, flag_empty)
+    = data_seperation(data_grid_cur, data.smp_cnt[i_t], alg_sep, i_t, pct_gt, n_lat, n_lon, pct_mat, flag_empty)
 
     # get the round truth when the data is flag_empty
     if np.count_nonzero(data.smp_cnt_gt[i_t]) < 3:
