@@ -7,7 +7,7 @@ import os
 # Fill in missing data in a 2D matrix with 2D Interpolation
 def interpolate2d(data, interp_func='gaussian'):
     n_lat, n_lon = data.shape
-    grid_x, grid_y = np.mgrid[0:n_lat-1, 0:n_lon-1]
+    grid_x, grid_y = np.mgrid[0:n_lat, 0:n_lon]
 
     points = np.where(data > 0)
     values = data[points]
