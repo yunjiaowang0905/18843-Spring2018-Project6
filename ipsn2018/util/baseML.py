@@ -4,6 +4,7 @@ import numpy as np
 def baseML(data_cur, i_t, n_lat, n_lon, alg_sep, pct_mat, flag_empty, pre_max_val, data, conf):
     """
     system Running in time series
+    data_cur: x * 7, numpy array
     parameters: data_rcd: data from records
                 alg_grid: method to combine data in each grid
                 n_lat, n_lon: latitude and longitude grids number
