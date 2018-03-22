@@ -19,6 +19,7 @@ import os
 import sys
 import yaml
 import docopt
+import scipy.io
 import numpy as np
 from datetime import datetime, timedelta
 
@@ -34,6 +35,7 @@ DATA_DIR = ROOT_DIR + "/data"
 
 class Scheduler():
     def __init__(self, conf):
+        self.car_no = conf['car_no']
         self.date_min = datetime.strptime(conf['date_min'], "%Y-%m-%d %H:%M:%S")
         self.date_max = datetime.strptime(conf['date_max'], "%Y-%m-%d %H:%M:%S")
         self.res_t = conf['rest_t']
@@ -58,11 +60,12 @@ class Scheduler():
 
         self.eva_all = np.zeros((self.n_time, 5, 3))
         self.eva_all_pf = np.zeros((self.n_time, 5, 3))
+        self.flag_empty = False
 
     def pf_run(self, conf):
         self.data.load(DATA_DIR)
         i_t = 0
-        pf = particle_filter(conf, self.res_t, self.res_s, self.n_lat, self.n_lon, self.data)
+        pf = particle_filter(conf, self.flag_empty, self.date_min, self.date_max, self.n_lat, self.n_lon, self.data)
 
         while i_t < self.n_time:
             t_low = self.date_min + timedelta(hours=i_t * self.res_t)
@@ -72,7 +75,10 @@ class Scheduler():
             i_t += 1
 
     def baseML_run(self):
-        pass
+        # select the data for pollution map reconstruction and calibrate the data
+        i_t = 0
+        bl = baselines(conf, self.date_min, self.date_max, self.n_lat, self.n_lon, self.data)
+
 
 
 if __name__ == "__main__":
