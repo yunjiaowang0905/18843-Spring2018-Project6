@@ -4,15 +4,15 @@ import scipy.io
 
 class data_schema():
     def __init__(self, n_time):
-        self.data_gt = [{} for _ in range(n_time)]   # ground truth data
-        self.data_pre = [{} for _ in range(n_time)]  # data for prediction
-        self.data_upd = [{} for _ in range(n_time)]  # data for update
-        self.data_ver = [{} for _ in range(n_time)]  # data for online verification  --- will be modified
-        self.smp_cnt = [{} for _ in range(n_time)]
-        self.smp_cnt_gt = [{} for _ in range(n_time)]
-        self.smp_cnt_pre = [{} for _ in range(n_time)]
-        self.smp_cnt_upd= [{} for _ in range(n_time)]
-        self.smp_cnt_ver = [{} for _ in range(n_time)]
+        self.data_gt = [[] for _ in range(n_time)]   # ground truth data
+        self.data_pre = [[] for _ in range(n_time)]  # data for prediction
+        self.data_upd = [[] for _ in range(n_time)]  # data for update
+        self.data_ver = [[] for _ in range(n_time)]  # data for online verification  --- will be modified
+        self.smp_cnt = [[] for _ in range(n_time)]
+        self.smp_cnt_gt = [[] for _ in range(n_time)]
+        self.smp_cnt_pre = [[] for _ in range(n_time)]
+        self.smp_cnt_upd= [[] for _ in range(n_time)]
+        self.smp_cnt_ver = [[] for _ in range(n_time)]
         self.data_upd_interp = [{} for _ in range(n_time)]   # compensated data
 
         # for just prediction

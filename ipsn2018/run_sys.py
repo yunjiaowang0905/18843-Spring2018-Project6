@@ -77,9 +77,11 @@ class Scheduler():
     def baseML_run(self):
         # select the data for pollution map reconstruction and calibrate the data
         i_t = 0
-        bl = baselines(conf, self.date_min, self.date_max, self.n_lat, self.n_lon, self.data)
+        bl = baselines(conf, self.flag_empty, self.pct_mat, self.date_min, self.date_max, self.n_lat, self.n_lon, self.data)
 
-
+        while i_t < self.n_time:
+            bl.run_iter(i_t)
+            i_t += 1
 
 if __name__ == "__main__":
     args = docopt.docopt(__doc__)
