@@ -75,7 +75,7 @@ class particle_filter(object):
 
     def predict(self, i_t):
         est_history = self.data.x_est_adp[i_t-self.t_len_his:i_t-1]
-        u_mat_tmp = get_par2(self.K, self.vx, self.vy, self.res_s, self.dt, est_history)
+        u_mat_tmp = get_par2(self.coe_matrix, self.B, est_history)
         self.data.u_umat_adp[i_t] = u_mat_tmp
         self.data.x_P_update = np.zeros((self.n_lat, self.n_lon, self.N_pf))
 
@@ -217,7 +217,7 @@ class particle_filter(object):
                                  np.sqrt(self.V_pf) * np.random.randn(self.N_pf, self.n_lat, self.n_lon)
         self.data.x_est_adp[i_t] = X0
         self.data.P_w_adp[i_t] = np.ones((self.N_pf, self.n_lat, self.n_lon)) / self.N_pf
-        self.data.pf_upd_flag_apt[i_t] = np.zeros((self.n_lat, self.n_lon))
+        self.data.pf_upd_flag_adp[i_t] = np.zeros((self.n_lat, self.n_lon))
         print("Initialization iteration")
 
     def flag_empty(self, i_t):
@@ -226,10 +226,10 @@ class particle_filter(object):
     def run_iter(self, i_t):
         self.generate_observation(i_t)
         self.alg_upd = 4
-        self.flag_range_lim = 1
+
         self.flag_cal_feature = 1
 
-        if i_t < self.t_len_his + 1:
+        if i_t < self.t_len_his:
             self.initialize_stage(i_t)
         else:
             self.predict(i_t)

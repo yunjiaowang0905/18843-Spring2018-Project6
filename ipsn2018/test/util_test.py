@@ -21,6 +21,13 @@ class limit_range_Test(unittest.TestCase):
         b = np.array([0,0,1,5,3,4,5,5])
         self.assertEqual(np.array_equal(a, b), True, "limit_range() test fail")
 
+class get_par2_Test(unittest.TestCase):
+    def test(self):
+        x_cell = np.array([np.ones((2,2)), np.ones((2,2)), np.ones((2,2))*2])
+        a = get_par2(1, np.zeros((2, 2)), np.zeros((2, 2)), 1, 5, x_cell)
+        b = np.array([[0.1,0.1],[0.1,0.1]])
+        self.assertEqual(np.array_equal(a, b), True, "get_par2() test fail")
+
 
 if __name__ == '__main__':
     unittest.main()
