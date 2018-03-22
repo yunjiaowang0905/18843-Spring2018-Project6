@@ -5,45 +5,47 @@ from getA_c import getA_c
 
 # Result path
 RESULT_PATH = "../result/gt_40_upd100_sep2sw_tlenhis3_sr16_tr1_cn29_early/gt_40_upd100_sep2_tlenhis3_rangeLim0_ann_dd_gp.mat"
+NEWDATA_PATH = "../result/distribution_res_newArea.csv"
 
-n_time = 515
-n_lat = 16
-n_lon = 64
+n_time = 5903
+n_lat = 12
+n_lon = 60
 N_pf = 100
 pre_max_val = 10
 l = 500 # ???
 res_t = 1
 dt = res_t * 60 *60
-t_len_his = 3
+t_len_his = 5
 alg_upd = 4
 flag_range_lim = 1
 flag_cal_feature = 1
 K = 100
-vx = 0
-vy = 0
+vx = -2
+vy = -2
 x_N_pf = 0.5710**2
 run_alg = 1
 V_pf = 0.3260
+gas_max_val = 60
 
 def init():
     global coe_matrix
-    coe_matrix = np.full((1024, 1024), 0)
+    coe_matrix = np.full((720, 720), 0)
     global x_est_gp
-    x_est_gp = np.zeros((n_time,16,64), dtype=np.float64)
+    x_est_gp = np.zeros((n_time,n_lat,n_lon), dtype=np.float64)
     global data_upd_interp
-    data_upd_interp = np.zeros((n_time,16,64), dtype=np.float64)
+    data_upd_interp = np.zeros((n_time,n_lat,n_lon), dtype=np.float64)
     global pf_upd_flag_adp
-    pf_upd_flag_adp = np.zeros((n_time,16,64), dtype=np.float64) # unneccssary
+    pf_upd_flag_adp = np.zeros((n_time,n_lat,n_lon), dtype=np.float64) # unneccssary
     global x_est_adp
-    x_est_adp = np.zeros((n_time,16,64), dtype=np.float64)
+    x_est_adp = np.zeros((n_time,n_lat,n_lon), dtype=np.float64)
     global P_w_adp
-    P_w_adp = np.zeros((n_time,100,16,64), dtype=np.float64) # unneccssary
+    P_w_adp = np.zeros((n_time,100,n_lat,n_lon), dtype=np.float64) # unneccssary
     global x_P_adp
-    x_P_adp = np.zeros((n_time,100,16,64), dtype=np.float64) # unneccssary
+    x_P_adp = np.zeros((n_time,100,n_lat,n_lon), dtype=np.float64) # unneccssary
     global u_mat_adp
-    u_mat_adp = np.zeros((n_time,16,64), dtype=np.float64) # unneccssary
+    u_mat_adp = np.zeros((n_time,n_lat,n_lon), dtype=np.float64) # unneccssary
     global X0
-    X0 = np.zeros((16,64), dtype=np.float64)
+    X0 = np.zeros((n_lat,n_lon), dtype=np.float64)
 
     V_x = np.zeros((n_lat,n_lon)) + vx
     V_y = np.zeros((n_lat,n_lon)) + vy
@@ -103,6 +105,10 @@ def set_X0(value):
 def set_x_est_gp(i, value):
     global x_est_gp
     x_est_gp[i] = value
+
+def set_x_est_gp_single(i, x, y, value):
+    global x_est_gp
+    x_est_gp[i][x][y] = value
 
 def set_data_upd_interp(i, value):
     global data_upd_interp

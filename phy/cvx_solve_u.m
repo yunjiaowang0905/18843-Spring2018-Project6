@@ -1,17 +1,17 @@
 function u = cvx_solve_u(A_in, B_in, x_cell_in)
     a = [A_in{:}]; 
     xa = cell2mat(a); 
-    A = double(reshape(xa,1024,1024));
+    A = double(reshape(xa,720,720));
     b = [B_in{:}]; 
     xb = cell2mat(b); 
-    B = double(reshape(xb,1024,1024));
+    B = double(reshape(xb,720,720));
     [x,y] = size(x_cell_in);
     x_cell = cell([y 1]);
     for i=1:y
         cell_ele = x_cell_in{1,i};
         cell_ele_li = [cell_ele{:}]; 
         cell_ele_mat = cell2mat(cell_ele_li); 
-        x_cell{i,1} = double(reshape(cell_ele_mat,16,64));
+        x_cell{i,1} = double(reshape(cell_ele_mat,12,60));
     end
 
     T = length(x_cell);
