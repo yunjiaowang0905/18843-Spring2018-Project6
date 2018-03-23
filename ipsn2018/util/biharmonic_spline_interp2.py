@@ -31,8 +31,8 @@ def biharmonic_spline_interp2(X, Y, Z, XI, YI): # the third input should be Z
     #  Compute GG matrix for GG*m = d inversion problem
     GG = np.zeros(len(Z),len(Z))
 
-    for i in xrange(0, len(Z)):
-        for j in xrange(0, len(Z)):
+    for i in range(0, len(Z)):
+        for j in range(0, len(Z)):
             if i != j:
                 mgax = np.sqrt(np.square(X[i] - X[j]) + np.square(Y[i] - Y[j]))
                 if mgax >= np.exp(-7):
@@ -43,8 +43,8 @@ def biharmonic_spline_interp2(X, Y, Z, XI, YI): # the third input should be Z
     #   Find 2D interpolated surface through irregular/regular X, Y grid points
     gg = np.zeros(m.shape)
 
-    for i in xrange(0, len(ZI)):    # ZI should be row vector, otherwise may cause error
-        for k in xrange(0 , len(Z)):
+    for i in range(0, len(ZI)):    # ZI should be row vector, otherwise may cause error
+        for k in range(0 , len(Z)):
             magx = np.sqrt(np.square(XI[i] - X[k]))
             if mgax >= np.exp(-7):
                 gg[k] = np.square(magx) * (np.log(magx) - 1)
@@ -55,8 +55,8 @@ def biharmonic_spline_interp2(X, Y, Z, XI, YI): # the third input should be Z
     #TODO: Plot result if running example or if no output arguments are found
 
     # Replace infinite or nan number with 0
-    for i in xrange(len(ZI)):
+    for i in range(len(ZI)):
         if np.isnan(ZI[i]) or np.isinf(ZI[i]):
             ZI[i] = 0
 
-    return ZI        
+    return ZI
