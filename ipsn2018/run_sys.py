@@ -25,7 +25,7 @@ from datetime import datetime, timedelta
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "util"))
 sys.path.append(os.path.join(os.path.dirname(__file__), "model"))
-from model import particle_filter, neural_network, gaussian_process
+from model import particle_filter, baselines
 from util.geo import deg2km
 from util.data_helper import data_schema
 
