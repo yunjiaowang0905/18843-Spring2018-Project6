@@ -73,6 +73,6 @@ class data_schema():
             if not key.startswith("__"):
                 setattr(self, key, [v[0] for v in value])
 
-        path_station_loc = DATA_DIR + "/station_info.mat"
-        station_info = scipy.io.loadmat(DATA_DIR + "/data/station_info.mat")
-        setattr(self, station_info, station_info['station_info'])
+        # path_station_loc = DATA_DIR + "/station_info.mat"
+        # station_info = scipy.io.loadmat(DATA_DIR + "/data/station_info.mat")
+        # setattr(self, station_info, station_info['station_info'])
