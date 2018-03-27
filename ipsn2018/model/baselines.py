@@ -321,5 +321,5 @@ class baselines(object):
             ds_cur[ds_cur = 0] = 1e-4
             self.daya.eva_all(i_t,:,:) = abs([self.data.x_est_dd[i_t](self.idx_station_v), self.data.x_est_ann[i_t](self.idx_station_v)\
                 self.data.x_est_gp[i_t](self.idx_station_v)]\
-                - repmat(np.transpose(ds_cur), 1, 3))./repmat(np.transpose(ds_cur), 1, 3)
+                - repmat(np.transpose(ds_cur), 1, 3))/repmat(np.transpose(ds_cur), 1, 3)
             self.data.data_station_all[i_t] = ds_cur

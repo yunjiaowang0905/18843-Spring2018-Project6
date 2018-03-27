@@ -1,6 +1,7 @@
 __author__ = 'Nanshu Wang'
 import numpy as np
 import scipy.io
+import pickle
 
 class data_schema():
     def __init__(self, n_time):
@@ -61,9 +62,10 @@ class data_schema():
 
         self.data_station_all= np.zeros((n_time, 5))
 
-    def save(self):
-        pass
-        # TODO
+    def save(self, DATA_DIR):
+        path = DATA_DIR + "/result/data_baselines"
+        file_handler = open(path, 'wb')
+        pickle.dump(self, file_handler)
 
     def load(self, DATA_DIR):
         # TODO load data from specific directory
