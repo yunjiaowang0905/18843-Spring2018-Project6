@@ -21,7 +21,7 @@ particle_filter:
   x_N_pf: 0.5710
   x_R_pf: 0.5710
   N_pf: 100
-  alg_upd: 1
+  alg_upd: 4
   alg_sep: 2
   t_len_his: 3
   ver_re_err_th: 0.1

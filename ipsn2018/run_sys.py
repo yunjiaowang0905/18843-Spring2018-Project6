@@ -25,7 +25,7 @@ from datetime import datetime, timedelta
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "util"))
 sys.path.append(os.path.join(os.path.dirname(__file__), "model"))
-from model import particle_filter, neural_network, gaussian_process
+from model import particle_filter, baselines
 from util.geo import deg2km
 from util.data_helper import data_schema
 
@@ -47,8 +47,8 @@ class Scheduler():
         self.lat_max = conf['lat_max']
 
         self.res_s = conf['res_s']
-        self.n_lon = np.ceil(deg2km(self.lon_max-self.lon_min) / self.res_s * 1000)
-        self.n_lat = np.ceil(deg2km(self.lat_max-self.lat_min) / self.res_s * 1000)
+        self.n_lon = np.int(np.ceil(deg2km(self.lon_max-self.lon_min) / self.res_s * 1000))
+        self.n_lat = np.int(np.ceil(deg2km(self.lat_max-self.lat_min) / self.res_s * 1000))
         # self.l = self.res_s
         self.pct_gt = conf['pct_gt']
         self.pct_mat = [conf['pct_pred'], conf['pct_corr'], conf['pct_veri']]
@@ -65,7 +65,7 @@ class Scheduler():
     def pf_run(self, conf):
         self.data.load(DATA_DIR)
         i_t = 0
-        pf = particle_filter(conf, self.flag_empty, self.date_min, self.date_max, self.n_lat, self.n_lon, self.data)
+        pf = particle_filter(conf, self.res_t, self.res_s, self.n_lat, self.n_lon, self.data)
 
         while i_t < self.n_time:
             t_low = self.date_min + timedelta(hours=i_t * self.res_t)
