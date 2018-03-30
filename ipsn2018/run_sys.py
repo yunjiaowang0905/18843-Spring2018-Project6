@@ -19,7 +19,6 @@ import os
 import sys
 import yaml
 import docopt
-import scipy.io
 import numpy as np
 from datetime import datetime, timedelta
 

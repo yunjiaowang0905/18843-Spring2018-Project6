@@ -2,7 +2,7 @@ sys:
   file_str: "../data/raw_data.dat"
   car_no: 29
   date_min: "2016-12-22 11:00:00"
-  date_max: "2016-12-22 15:00:00"
+  date_max: "2016-12-23 15:00:00"
   t_min: 0
   t_max: 24
   rest_t: 1
