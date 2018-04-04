@@ -30,19 +30,12 @@ for cord in data:
 
 features.sort(key=lambda tup: tup[0])
 
-max_time = features[-1][0]
-
-fp_train = open(sys.argv[2], 'w')
-fp_test = open(sys.argv[3], 'w')
+fp = open(sys.argv[2], 'w')
 
 for feature in features:
-	if feature[0] < max_time*0.9:
-		fp = fp_train
-	else:
-		fp = fp_test
 	fp.write(feature[1])
 	fp.write(" 1:"+feature[2])
 	fp.write(" 2:"+feature[3])
-	fp.write(" 3:"+feature[4])
-	fp.write(" 4:"+feature[5])
-	fp.write(" 5:"+feature[6]+'\n')
+	#fp.write(" 3:"+feature[4])
+	fp.write(" 3:"+feature[5])
+	fp.write(" 4:"+feature[6]+'\n')
