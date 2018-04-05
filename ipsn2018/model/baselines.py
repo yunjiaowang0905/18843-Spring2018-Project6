@@ -1,14 +1,20 @@
 __author__ = 'Nanshu Wang'
 
 import numpy as np
+import pickle
 import sys, os
 import scipy.io
 from scipy.interpolate import interp1d
+from scipy.spatial.distance import cdist
 from math import pi
 from datetime import datetime, timedelta
+from sklearn.neural_network import MLPClassifier
 sys.path.insert(0, os.path.abspath(".."))
 
 from util import rcd2grid, limit_range, get_dd_result
+from util.get_relative_error import get_relative_error
+
+DATA_DIR = "/Users/melody/18843-Spring2018-Project6/ipsn2018/data"
 
 class baselines(object):
     """Baselines
@@ -29,6 +35,8 @@ class baselines(object):
         self.n_lon = n_lon
         self.data = data
 
+        self.flag_range_lim =   conf['flag_range_lim']
+        self.pct_gt = conf['pct_gt']
         self.t_len_his = conf['t_len_his']
         self.res_t = conf['rest_t']
         self.alg_sep = conf['alg_sep']
@@ -42,7 +50,8 @@ class baselines(object):
         self.gas_max_val = conf['gas_max_val']
         self.date_min_num = date_min.toordinal() + 366
         self.date_max_num = date_max.toordinal() + 366
-
+        print "date_min_num" + str(self.date_min_num)
+        print "date_max_num" + str(self.date_max_num)
 
         self.pre_max_val = 10
         self.idx_station_v = None
@@ -52,7 +61,7 @@ class baselines(object):
         self.data_selection()
 
 
-    def get_pre_slt(self, file_path):
+    def data_pre_slt(self, file_path):
         """
         select data according to given date, time period, car id, area range
         data_slt: selected data
@@ -60,11 +69,12 @@ class baselines(object):
         """
         data_mat = scipy.io.loadmat(file_path)['raw_data_area_time']
         data_t_idx = np.nonzero((data_mat[:,1] >= self.date_min_num)\
-            & (data_mat[:,1] <= self.date_min_num)\
+            & (data_mat[:,1] <= self.date_max_num)\
             & (data_mat[:,4] > 0)\
             & (data_mat[:,4] < self.gas_max_val)\
             & (np.in1d(data_mat[:,0], range(1, self.car_no + 1)))) # car selection
         data_t = data_mat[data_t_idx[0],:]
+        print "data_t"
         # area selection
         data_q_idx = np.nonzero((data_t[:,2] >= self.lat_min)\
             & (data_t[:,2] <= self.lat_max)\
@@ -80,10 +90,11 @@ class baselines(object):
         data_q[:,2] = xr
         data_q[:,3] = yr
         d_lon = self.lon_max - self.lon_min
-        d_lat = d_lon * np.cos(self.slat_min / 180 * pi) * self.n_lat / self.n_lon
+        d_lat = d_lon * np.cos(self.lat_min / 180 * pi) * self.n_lat / self.n_lon
         xi = np.linspace(self.lon_min + d_lon/self.n_lon/2, self.lon_max - d_lon/self.n_lon/2, num=self.n_lon)
         yi = np.linspace(self.lat_min + d_lat/self.n_lat/2, self.lat_max - d_lat/self.n_lat/2, num=self.n_lat)
         data_slt_list = []
+        print "data_q"
         for d in data_q:
             hour = (datetime.fromordinal(int(d[1])) + timedelta(days=d[1]%1) - timedelta(days = 366)).hour
             if hour >= self.t_min and hour < self.t_max:
@@ -92,31 +103,33 @@ class baselines(object):
 
 
     def data_selection(self):
-        xi, yi, data_slt_list = self.data_pre_slt(DATA_DIR+ "/201701/raw/slt_raw_area_time_early.mat"）
+        xi, yi, data_slt_list = self.data_pre_slt(DATA_DIR + "/201701/raw/slt_raw_area_time_early.mat")
         self.data_slt = np.asarray(data_slt_list)
+        print np.shape(self.data_slt)
         # get the data from monitoring station
-        station_info = scipy.io.loadmat(DATA_DIR + "/data/station_info.mat")
-        station_data = scipy.io.loadmat(DATA_DIR + "/data/station_data.mat")
+        station_info = scipy.io.loadmat(DATA_DIR + "/station_info.mat")
+        station_data = scipy.io.loadmat( DATA_DIR + "/station_data.mat")
+        print "Successfully load data"
         station_info_lon = np.asarray([v[1] for v in station_info['station_info']]).flatten()
         station_info_lat = np.asarray([v[2] for v in station_info['station_info']]).flatten()
         station_loc = np.c_[station_info_lon, station_info_lat]
         station_loc_idx = np.nonzero((station_loc[:,0] >= self.lon_min) & (station_loc[:, 0] <= self.lon_max) \
             & (station_loc[:,1] >= self.lat_min) & (station_loc[:, 1] <= self.lat_max))
         station_data_loc = station_data['station_data'][:, np.r_[0, station_loc_idx[0] + 2]]
-        station_data_idx = np.nonzero((station_data_loc[:,0] >= date_min_num) & (station_data_loc[:,0] <= date_max_num))
+        station_data_idx = np.nonzero((station_data_loc[:,0] >= self.date_min_num) & (station_data_loc[:,0] <= self.date_max_num))
         self.station_data_slt = station_data_loc[station_data_idx[0],:]
         #pre_max_val = np.max(station_data_slt[:,1:len(station_data_slt[0])])
         self.idx_station_v = np.zeros(np.shape(station_loc_idx)[1])
         #idx_sta = np.zeros(self.n_lat, self.n_lon) # n_lon=64, n_lat=16
         #sta_loc = np.zeros((np.shape(station_loc_idx)[1], 2))
-
+        print "After load data"
         for i in range(0, np.shape(station_loc_idx)[1]):
             loc_cur = station_loc[station_loc_idx[0][i],:]
             # a = min(abs(loc_cur[0] - xi))
             # b = min(abs(loc_cur[1] - yi))
             x_cur = np.argmin(abs(loc_cur[0] - xi))
             y_cur = np.argmin(abs(loc_cur[1] - yi))
-            self.idx_station_v[i]= x_cur * n_lat + (y_cur + 1)
+            self.idx_station_v[i]= x_cur * self.n_lat + (y_cur + 1)
             #idx_sta[y_cur, x_cur] = 1
             #sta_loc[i,:] = [y_cur, x_cur]
 
@@ -139,22 +152,40 @@ class baselines(object):
         """
 
         # selection ground
-        row, col = np.nonzero(self.data.smp_cnt)
+        print("data_in")
+        print(data_in)
+        # if data_in:
+        #     with open(r"filename_data_in.obj", "wb") as output:
+        #         pickle.dump(data_in, output)
+        #     with open(r"filename_data.obj", "wb") as output:
+        #         pickle.dump(self.data, output)
+        row, col = np.nonzero(self.data.smp_cnt[i_t])
         n_val = len(row)
 
-        n_gt = round(pct_gt * n_val)
+        n_gt = int(round(self.pct_gt * n_val))
         r_all = np.random.permutation(n_val)
-        n_pre = round((n_val - n_gt) * pct_mat[1])
-        n_upd = round((n_val - n_gt) * pct_mat[2])
+        n_pre = int(round((n_val - n_gt) * self.pct_mat[0]))
+        n_upd = int(round((n_val - n_gt) * self.pct_mat[1]))
         n_ver = n_val - n_gt - n_pre - n_upd
+        print("data_seperation")
+        print(self.flag_empty)
 
-        if not flag_empty:
+        # self.data.data_gt[i_t] = np.zeros((self.n_lat, self.n_lon))
+        # self.data.smp_cnt_gt[i_t] = np.zeros((self.n_lat, self.n_lon))
+        # self.data.data_pre[i_t] = np.zeros((self.n_lat, self.n_lon))
+        # self.data.smp_cnt_pre[i_t] = np.zeros((self.n_lat, self.n_lon))
+        # self.data.data_upd[i_t] = np.zeros((self.n_lat, self.n_lon))
+        # self.data.smp_cnt_upd[i_t] = np.zeros((self.n_lat, self.n_lon))
+        # self.data.data_ver[i_t] = np.zeros((self.n_lat, self.n_lon))
+        # self.data.smp_cnt_ver[i_t] = np.zeros((self.n_lat, self.n_lon))
+
+        if not self.flag_empty:
             # choose different area, each area get average value
-            if alg_sep == 1:
+            if self.alg_sep == 1:
                 r_gt = np.sort(r_all[0: n_gt])
                 r_pre = np.sort(r_all[n_gt: n_gt + n_pre + 1])
                 r_upd = np.sort(r_all[n_gt + n_pre: n_gt + n_pre + n_upd + 1])
-                r_ver = np.sort(r_all[n_gt + n_pre + n_upd: end + 1]
+                r_ver = np.sort(r_all[n_gt + n_pre + n_upd: end + 1])
 
                 for i_gt in range(len(r_gt)):
                     id_cur = r_gt[i_gt]
@@ -167,14 +198,14 @@ class baselines(object):
                     id_cur = r_pre[i_pre]
                     r = row[id_cur]
                     c = col[id_cur]
-                    self.data.data_pre[i_t][r][c] = np.mean(data_in[row[r][c])
+                    self.data.data_pre[i_t][r][c] = np.mean(data_in[r][c])
                     self.data.smp_cnt_pre[i_t][r][c] = self.data.smp_cnt[i_t][r][c]
 
                 for i_upd in range(n_upd):
                     id_cur = r_upd[i_upd]
                     r = row[id_cur]
                     c = col[id_cur]
-                    self.data.data_upd[i_t][r][c] = np.mean(data_in[[r][c])
+                    self.data.data_upd[i_t][r][c] = np.mean(data_in[r][c])
                     self.data.smp_cnt_upd[i_t][r][c] = self.data.smp_cnt[i_t][r][c]
 
                 for i_ver in range(n_ver):
@@ -184,18 +215,18 @@ class baselines(object):
                     self.data.data_ver[i_t][r][c] = np.mean(data_in[r][c])
                     self.data.smp_cnt_ver[i_t][r][c] = self.data.smp_cnt[i_t][r][c]
 
-            else if alg_sep == 2:
+            elif self.alg_sep == 2:
                 # choose the outside as the ground truth
-                c_point = [n_lat/2 - 1, n_lon/2 - 1] # python is 0-based, for caculate the distance, minus 1 first
-                dis_mat = cdist(np.transpose(row,col), [c_point])
+                c_point = [self.n_lat/2 - 1, self.n_lon/2 - 1] # python is 0-based, for caculate the distance, minus 1 first
+                dis_mat = cdist(np.c_[row,col], [c_point])
                 if i_t % 2 == 1:
-                    indices = np.argsort(dis_mat)[::-1] # [::-1] is for descending order
+                    indices = np.argsort(dis_mat, axis=0)[::-1] # [::-1] is for descending order
                 else:
-                    indices = np.argsort(dis_mat)
-
+                    indices = np.argsort(dis_mat, axis=0)
+                    
                 for i_gt in range(n_gt):
-                    r = row[indices[i_gt]]
-                    c = col[indices[i_gt]]
+                    r = row[indices[i_gt][0]]
+                    c = col[indices[i_gt][0]]
                     self.data.data_gt[i_t][r][c] = np.mean(data_in[r][c])  # not sure about the origin matlab code
                     self.data.smp_cnt_gt[i_t][r][c] = self.data.smp_cnt[i_t][r][c]
 
@@ -203,22 +234,22 @@ class baselines(object):
 
                 for i_pre in range(n_pre):
                     id_cur = r_tr[i_pre]
-                    r = row[indices[id_cur]]
-                    c = col[indices[id_cur]]
+                    r = row[indices[id_cur][0]]
+                    c = col[indices[id_cur][0]]
                     self.data.data_pre[i_t][r][c] = np.mean(data_in[r][c])
                     self.data.smp_cnt_pre[i_t][r][c] = self.data.smp_cnt[i_t][r][c]
 
                 for i_upd in range(n_pre):
                     id_cur = r_tr[i_upd + n_pre]
-                    r = row[indices[id_cur]]
-                    c = col[indices[id_cur]]
+                    r = row[indices[id_cur][0]]
+                    c = col[indices[id_cur][0]]
                     self.data.data_upd[i_t][r][c] = np.mean(data_in[r][c])
-                    self.data.smp_cnt_upd[[i_t]r][c] = self.data.smp_cnt[i_t][r][c]
+                    self.data.smp_cnt_upd[i_t][r][c] = self.data.smp_cnt[i_t][r][c]
 
                 for i_ver in range(n_pre):
                     id_cur = r_tr[i_ver + n_pre + n_upd]
-                    r = row[indices[id_cur]]
-                    c = col[indices[id_cur]]
+                    r = row[indices[id_cur][0]]
+                    c = col[indices[id_cur][0]]
                     self.data.data_ver[i_t][r][c] = np.mean(data_in[r][c])
                     self.data.smp_cnt_ver[i_t][r][c] = self.data.smp_cnt[i_t][r][c]
 
@@ -232,25 +263,36 @@ class baselines(object):
                     n_lat, n_lon: latitude and longitude grids number
                     i_gas: gas index, co 3, co2 4, o3 5, pm25 6
         """
-
+        print "data_cur"
+        print data_cur
         # put record data into each grid
-        data_grid_cur，self.data.smp_cnt[i_t] = rcd2grid(data_cur, self.n_lat, self.n_lon, self.flag_empty)
+        data_grid_cur, self.data.smp_cnt[i_t] = rcd2grid(data_cur, self.n_lat, self.n_lon, self.flag_empty)
 
+
+        print("rcd2grid finished")
         # seperate data into 4 parts
         self.data_seperation(data_grid_cur, i_t)
+        print("data_seperation finished")
 
         # get the round truth when the data is flag_empty
-        if np.count_nonzero(data.smp_cnt_gt[i_t]) < 3:
-            data.data_gt[i_t] = data_gt[i_t - 1]
-            data.smp_cnt_gt[i_t] = data.smp_cnt_gt[i_t - 1]
+        if np.count_nonzero(self.data.smp_cnt_gt[i_t]) < 3:
+            self.data.data_gt[i_t] = self.data.data_gt[i_t - 1]
+            self.data.smp_cnt_gt[i_t] = self.data.smp_cnt_gt[i_t - 1]
 
         # get result for data driven method
-        data_tr = [sum(x) for x in zip(self.data.data_pre[i_t], self.data.data_udp[i_t], self.data.data_ver[i_t])] # for numpy array: data.data_pre[i_t] + data.data_udp[i_t] + data.data_ver[i_t]
-        self.data.x_est_dd = get_dd_result(data_tr)
+        data_tr = [sum(x) for x in zip(self.data.data_pre[i_t], self.data.data_upd[i_t], self.data.data_ver[i_t])] # for numpy array: data.data_pre[i_t] + data.data_udp[i_t] + data.data_ver[i_t]
+        print "data_tr"
+        print data_tr
+        print("get get_dd_result: " + str(i_t))
+        self.data.x_est_dd[i_t] = get_dd_result(data_tr, self.n_lat, self.n_lon)
+        print(self.data.x_est_dd[i_t])
 
-        if not flag_empty:
-            if np.count_nonzero(self.data.x_est_dd[i_t]) / (n_lat * n_lon) <= 0.2:
+        print(self.flag_empty)
+        if not self.flag_empty:
+            if (np.count_nonzero(self.data.x_est_dd[i_t]) / (self.n_lat * self.n_lon)) <= 0.2:
                 idx = self.data.x_est_dd[i_t] == 0
+                print("idx")
+                print(idx)
                 if i_t > 0:
                     self.data.x_est_dd[i_t][idx] = self.data.x_est_dd[i_t - 1][idx]
 
@@ -258,43 +300,47 @@ class baselines(object):
             self.data.x_est_ann[i_t] = self.data.x_est_dd[i_t]
             self.data.x_est_gp[i_t] = self.data.x_est_dd[i_t]
         else:
-            sum_dd = np.zeros(n_lat, n_lon)
+            sum_dd = np.zeros((self.n_lat, self.n_lon))
             # Creating a fitting network
-            hiddenLayerSize = 10
-            # TODO: implement neural network by keras
 
             inputs = []
             targets = []
-            for t_cur in range (i_t - self.t_len_his - 1, i_t - 1):
+            for t_cur in range (i_t - self.t_len_his, i_t - 1):
+                print(t_cur)
                 sum_dd = sum_dd + self.data.x_est_dd[t_cur]
-                self.data.smp_cnt_gt_cur = self.data.smp_cnt_gt[t_cur]
-                idx = np.nonzero(self.data.smp_cnt_gt_cur > 0)
-                # TODO:implement find function
-                if idx[0].size:
-                    # TODO; test
-                    # row,col = np.nonzero(idx)
-                    inputs = np.c_(t_cur * np.ones(idx[0].size), idx[0], idx[1])
-                    targets = np.transpose(self.data.data_gt[t_cur][idx]); # not sure about transpose
-                    # TODO: modify data structure for neural network
-                    # inputs_cur = [t_cur * ones(1,length(idx));row';col']
-                    # inputs = [inputs,inputs_cur];
-                    # targets = [targets, (data_gt{t_cur}(idx))'];
+                smp_cnt_gt_cur = self.data.smp_cnt_gt[t_cur]
+                print(type(smp_cnt_gt_cur))
+                idx = np.nonzero(smp_cnt_gt_cur > 0)
+                if idx[0].size: #row index
+                    pass
+                    #TODO test
+                    #row, col = idx
+                    #inputs_cur = np.c_[t_cur*np.ones(len(row)), row, col]
+                    #input = np.c_[inputs, inputs_cur]
+                    #targets = np.c_[targets, self.data_gt[t_cur][idx]]
+
+            # get interpolation results
+            #self.data.x_est_dd[i_t] = sum_dd/self.t_len_his
+
 
 
             # TODO: train the neural networking
+            # clf = MLPClassifier(solver='lbfgs', alpha=1e-5, \
+            #          hidden_layer_sizes=(10, 1), random_state=1)
+            # clf.fit(inputs, targets)
+            # clf.predict([[2., 2.], [-1., -2.]])
 
             # TODO: train the Gaussian gaussian_process
 
-        if conf.flag_range_lim:
-            limit_range(self.data.x_est_dd[i_t], 0, pre_max_val)
-            limit_range(self.data.x_est_ann[i_t], 0, pre_max_val)
-            limit_range(self.data.x_est_gp[i_t], 0, pre_max_val)
+        if self.flag_range_lim:
+            limit_range(self.data.x_est_dd[i_t], 0, self.pre_max_val)
+            limit_range(self.data.x_est_ann[i_t], 0, self.pre_max_val)
+            limit_range(self.data.x_est_gp[i_t], 0, self.pre_max_val)
 
 
     def run_iter(self, i_t):
         t_low = self.date_min_num + i_t * self.res_t / 24
-        t_high = self.date_min_num + (i_t + 1) * self.res_t / 24 #TODO: not data_max_num???
-        # dispaly(datastr(t_low))
+        t_high = self.date_min_num + (i_t + 1) * self.res_t / 24
         data_cur_idx = np.nonzero((self.data_slt[:, 1] >= t_low) & (self.data_slt[:, 1] < t_high))
         data_cur = self.data_slt[data_cur_idx[0],:]
         delt = 10 / 24 / 60
@@ -306,20 +352,20 @@ class baselines(object):
         else:
             self.flag_empty = True
 
-        #TODO: test
         self.baseML(data_cur, i_t)
 
         # evaluation
-        # eva_re_err_dd: i_t * 16 * 64
-        self.data.eva_re_err_dd[i_t] = get_relative_error(self.data.x_est_dd[i_t], self.data.data_gt[i_t], self.data.smp_cnt_gt[i_t], True)
-        self.data.eva_re_err_ann[i_t] = get_relative_error(self.data.x_est_ann[i_t], self.data.data_gt[i_t], self.data.smp_cnt_gt[i_t], True)
-        self.data.eva_re_err_gp[i_t] = get_relative_error(self.data.x_est_gp[i_t], self.data.data_gt[i_t], self.data.smp_cnt_gt[i_t], True)
+        self.data.eva_re_err_dd[i_t] = get_relative_error(self.data.x_est_dd[i_t], self.data.data_gt[i_t], self.data.smp_cnt_gt[i_t], True, self.n_lat, self.n_lon)
+        print ("compute error: " + str(i_t))
+        print (self.data.eva_re_err_dd[i_t])
+        self.data.eva_re_err_ann[i_t] = get_relative_error(self.data.x_est_ann[i_t], self.data.data_gt[i_t], self.data.smp_cnt_gt[i_t], True, self.n_lat, self.n_lon)
+        self.data.eva_re_err_gp[i_t] = get_relative_error(self.data.x_est_gp[i_t], self.data.data_gt[i_t], self.data.smp_cnt_gt[i_t], True, self.n_lat, self.n_lon)
 
         # use station data to evaluation
-        if data_station_cur.size
-            ds_cur = data_station_cur[1,:]
-            ds_cur[ds_cur = 0] = 1e-4
-            self.daya.eva_all(i_t,:,:) = abs([self.data.x_est_dd[i_t](self.idx_station_v), self.data.x_est_ann[i_t](self.idx_station_v)\
-                self.data.x_est_gp[i_t](self.idx_station_v)]\
-                - repmat(np.transpose(ds_cur), 1, 3))/repmat(np.transpose(ds_cur), 1, 3)
-            self.data.data_station_all[i_t] = ds_cur
+        # if data_station_cur.size
+        #     ds_cur = data_station_cur[1,:]
+        #     ds_cur[ds_cur = 0] = 1e-4
+        #     self.data.eva_all(i_t,:,:) = abs([self.data.x_est_dd[i_t](self.idx_station_v), self.data.x_est_ann[i_t](self.idx_station_v)\
+        #         self.data.x_est_gp[i_t](self.idx_station_v)]\
+        #         - repmat(np.transpose(ds_cur), 1, 3))/repmat(np.transpose(ds_cur), 1, 3)
+        #     self.data.data_station_all[i_t] = ds_cur

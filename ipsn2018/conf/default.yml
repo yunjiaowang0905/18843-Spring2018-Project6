@@ -1,8 +1,8 @@
 sys:
   file_str: "../data/raw_data.dat"
   car_no: 29
-  date_min: "2016-12-22 11:00:00"
-  date_max: "2016-12-22 15:00:00"
+  date_min: "2016-12-20 11:00:00"
+  date_max: "2016-12-30 11:00:00"
   t_min: 0
   t_max: 24
   rest_t: 1
@@ -30,3 +30,17 @@ particle_filter:
   K: 100
   vx: 0
   vy: 0
+base_line:
+  t_len_his: 3
+  flag_range_lim: 0
+  t_min: 0
+  t_max: 24
+  lon_min: 113.8668
+  lon_max: 114.1538
+  lat_min: 22.5150
+  lat_max: 22.5868
+  rest_t: 1
+  alg_sep: 2
+  car_no: 29
+  gas_max_val: 60
+  pct_gt: 0.4
