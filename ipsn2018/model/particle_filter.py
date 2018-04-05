@@ -16,7 +16,12 @@ from util import getA_c, get_par2, cvx_solve_u, get_next_state, limit_range
 class particle_filter(object):
     """Particle Filter
     This class offers the training and prediction of Particle Filter
-    Parameters
+    A Particle Filter is a sequential Monte Carlo method for on-line state
+    tracking, which works within a Bayesian framework and under Markov
+    assumption. For air pollution problem, the two stages of Particle
+    Filter is: 1) state evolution estimation by physical model;
+    2) estimation correction by adaptively correct physical model with data
+    model
     """
     def __init__(self, conf, res_t, res_s, n_lat, n_lon, data):
         """
@@ -227,6 +232,7 @@ class particle_filter(object):
         return np.count_nonzero(self.data.smp_cnt_upd[i_t]) == 0
 
     def run_iter(self, i_t):
+
         self.generate_observation(i_t)
 
         self.flag_cal_feature = 1
