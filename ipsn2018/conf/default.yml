@@ -19,8 +19,8 @@ sys:
   flag_range_lim: 0 # boolean, true if we limit the range of prediction
   result_path: "data/result_olddata.pf"
 particle_filter:
-  x_N_pf: 3.8 # process noise with gaussian distribution in the state update
-  x_R_pf: 3.8 # Noise covariance in the measurement
+  x_N_pf: 0.1 # process noise with gaussian distribution in the state update
+  x_R_pf: 0.1 # Noise covariance in the measurement
   N_pf: 100 # number of particles
   alg_upd: 4 # update algorithm
   alg_sep: 2 #
@@ -28,7 +28,7 @@ particle_filter:
   ver_re_err_th: 0.1 # relative error threshold for verification
   ver_var_th: 0.2 # ???
   gas_max_val: 2541 # maximum number of gas(i.e., prediction number)
-  K: 100 # diffusion coefficients
+  K: 1 # diffusion coefficients
   vx: 0 # wind velocity
   vy: 0 # wind velocity
 base_line:
