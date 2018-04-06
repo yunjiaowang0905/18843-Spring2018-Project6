@@ -48,14 +48,13 @@ def show_result(data, n_time):
     #
     #     i_t += 1
     # print(n_time)
-    truth = data.data_gt
-    smp_count = data.smp_cnt_gt
-    n_time = 515
+    truth = data.data_test
+    smp_count = data.smp_cnt_test
     calc_abs_error("adp", truth[3:], data.x_est_adp[3:], smp_count[3:], n_time)
-    calc_abs_error("ann", truth[3:], data.x_est_ann[3:], smp_count[3:], n_time)
+    # calc_abs_error("ann", truth[3:], data.x_est_ann[3:], smp_count[3:], n_time)
     calc_abs_error("gp", truth[3:], data.x_est_gp[3:], smp_count[3:], n_time)
     calc_rel_error("adp", truth[3:], data.x_est_adp[3:], smp_count[3:], n_time)
-    calc_rel_error("ann", truth[3:], data.x_est_ann[3:], smp_count[3:], n_time)
+    # calc_rel_error("ann", truth[3:], data.x_est_ann[3:], smp_count[3:], n_time)
     calc_rel_error("gp", truth[3:], data.x_est_gp[3:], smp_count[3:], n_time)
 
 def calc_abs_error(alg, truth, pred, smp, n_time):

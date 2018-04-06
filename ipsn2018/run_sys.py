@@ -52,8 +52,8 @@ class Scheduler():
         self.res_s = conf['res_s']
         self.n_lon = np.int(np.ceil(deg2km(self.lon_max-self.lon_min) / self.res_s * 1000))
         self.n_lat = np.int(np.ceil(deg2km(self.lat_max-self.lat_min) / self.res_s * 1000))
-        # self.n_lon = 12
-        # self.n_lat = 60
+        self.n_lon = 12
+        self.n_lat = 60
         # self.l = self.res_s
         self.pct_gt = conf['pct_gt']
         self.pct_mat = [conf['pct_pred'], conf['pct_corr'], conf['pct_veri']]
@@ -71,8 +71,8 @@ class Scheduler():
 
 
     def pf_run(self, conf):
-        self.data.load_from_mat(DATA_DIR)
-        # self.data.load_new_mat(DATA_DIR)
+        # self.data.load_from_mat(DATA_DIR)
+        self.data.load_new_mat(DATA_DIR)
         i_t = 0
         pf = particle_filter(conf, self.res_t, self.res_s, self.n_lat, self.n_lon, self.data)
 
@@ -83,7 +83,9 @@ class Scheduler():
             pf.run_iter(i_t)
             i_t += 1
 
-        self.save()
+        show_result(self.data, self.n_time)
+        # self.save()
+
 
     def eval_run(self):
         self.load()
@@ -93,7 +95,7 @@ class Scheduler():
     def baseML_run(self, conf):
         # select the data for pollution map reconstruction and calibrate the data
         i_t = 0
-        # bl = baselines(conf, self.flag_empty, self.pct_mat, self.date_min, self.date_max, self.n_lat, self.n_lon, self.data)
+        bl = baselines(conf, self.flag_empty, self.pct_mat, self.date_min, self.date_max, self.n_lat, self.n_lon, self.data)
 
         print "start run iteration"
         print "self.n_time: " + str(self.n_time)

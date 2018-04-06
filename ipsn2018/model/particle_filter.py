@@ -98,14 +98,14 @@ class particle_filter(object):
                                                + np.sqrt(self.x_N_pf) * np.random.randn(self.n_lat, self.n_lon)
 
         if self.flag_range_lim == 1:    # range control
-            self.data.x_P_update = limit_range(self.data.x_P_update, 0, self.gas_max_val)
+            self.data.x_P_update = limit_range(self.data.x_P_update, 0, self.pre_max_val)
 
     def estimation_entropy(self, p_mat, x):
         n_bin = np.size(p_mat)
         # c_bin = np.linspace(0, self.pre_max_val, n_bin)
         n_p = np.zeros((n_bin, 1)) + 1e-15 # prevent zero possibilities
         for i in range(n_bin):
-            idx = max(0, min(99, np.int(np.floor(x[i] / (self.pre_max_val / n_bin)))))
+            idx = max(0, min(self.N_pf-1, np.int(np.floor(x[i] / (self.pre_max_val / n_bin)))))
             n_p[idx] += p_mat[i]
 
         E = -sum(n_p * np.log2(n_p))
@@ -157,7 +157,7 @@ class particle_filter(object):
 
         return distance, entropy
 
-    def get_upd_flag(self, i_t, distance, entropy):
+    def get_upd_flag(self, i_t):
         """
         :param i_t:
         :param distance: sum of M nearest neighbours' distances, D
@@ -198,7 +198,7 @@ class particle_filter(object):
             # use ver_re_err and ver_var at i_t - 1 to get the update flag matrix
         # for adaptive scheme
         elif self.alg_upd == 4:
-            # TODO distance - entropy????
+            distance, entropy = self.calculate_feature(i_t)
             feature_tmp = np.reshape(distance - entropy, (self.n_lat, self.n_lon))
             idx = feature_tmp <= 0
             pf_upd_flag[idx] = 1
@@ -239,6 +239,7 @@ class particle_filter(object):
                 rand = random()
                 idx = np.nonzero(rand <= np.cumsum(P_w_cur))
                 self.data.x_P_adp[i_t][i_pf, i_y, i_x] = x_P_update_cur[idx][0]
+                # self.data.x_P_adp[i_t][i_pf, i_y, i_x] = self.data.data_upd_interp[i_t][i_y, i_x]
 
         if self.flag_range_lim==1:
             # this is only for CO value range limitation
@@ -270,8 +271,9 @@ class particle_filter(object):
             self.initialize_stage(i_t)
         else:
             self.predict(i_t)
-            distance, entropy = self.calculate_feature(i_t)
-            self.data.pf_upd_flag_adp[i_t] = self.get_upd_flag(i_t, distance, entropy)
+            # self.data.x_P_update = np.transpose(self.data.x_P_adp[i_t], (2,0,1))
+
+            self.data.pf_upd_flag_adp[i_t] = self.get_upd_flag(i_t)
             self.update(i_t)
             self.resample(i_t)
 

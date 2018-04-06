@@ -2,7 +2,7 @@ sys:
   file_str: "../data/raw_data.dat" # path to raw data
   car_no: 29 # number of cars
   date_min: "2016-12-22 11:00:00" # start date of estimation
-  date_max: "2016-12-23 11:00:00" # end date of estimation
+  date_max: "2016-12-25 11:00:00" # end date of estimation
   t_min: 0 # start hour of one day
   t_max: 24 # end hour of one day
   rest_t: 1 # time resolution, duration of timestep
@@ -22,7 +22,7 @@ particle_filter:
   x_N_pf: 0.5710 # process noise with gaussian distribution in the state update
   x_R_pf: 0.5710 # Noise covariance in the measurement
   N_pf: 100 # number of particles
-  alg_upd: 4 # update algorithm
+  alg_upd: 1 # update algorithm
   alg_sep: 2 #
   t_len_his: 3 # number of history data for online estimation
   ver_re_err_th: 0.1 # relative error threshold for verification

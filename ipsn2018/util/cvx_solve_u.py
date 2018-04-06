@@ -1,5 +1,5 @@
 __author__ = 'Nanshu Wang'
-import cvxpy
+# import cvxpy
 import numpy as np
 from scipy.sparse import block_diag, vstack
 import copy
