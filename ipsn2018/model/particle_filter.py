@@ -280,4 +280,3 @@ class particle_filter(object):
             self.resample(i_t)
 
         self.flag_range_lim = 1
-

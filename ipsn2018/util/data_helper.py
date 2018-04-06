@@ -5,11 +5,12 @@ import pickle
 
 class data_schema():
     def __init__(self, n_time, n_lat, n_lon):
-        self.data_gt = [np.zeros((n_lat, n_lon)) for _ in range(n_time)]   # ground truth data
+        self.data_gt = {}
+        self.smp_cnt = {}
+        # self.data_gt = [np.zeros((n_lat, n_lon)) for _ in range(n_time)]   # ground truth data
         self.data_pre = [np.zeros((n_lat, n_lon)) for _ in range(n_time)]  # data for prediction
         self.data_upd = [np.zeros((n_lat, n_lon)) for _ in range(n_time)]  # data for update
         self.data_ver = [np.zeros((n_lat, n_lon)) for _ in range(n_time)]  # data for online verification  --- will be modified
-        self.smp_cnt = [[] for _ in range(n_time)]
         self.smp_cnt_gt = [np.zeros((n_lat, n_lon)) for _ in range(n_time)]
         self.smp_cnt_pre = [np.zeros((n_lat, n_lon)) for _ in range(n_time)]
         self.smp_cnt_upd= [np.zeros((n_lat, n_lon)) for _ in range(n_time)]
@@ -87,6 +88,15 @@ class data_schema():
         self.smp_cnt_upd = self.data_train > 0
         self.smp_cnt_test = self.data_test > 0
 
-        # path_station_loc = DATA_DIR + "/station_info.mat"
-        # station_info = scipy.io.loadmat(DATA_DIR + "/data/station_info.mat")
-        # setattr(self, station_info, station_info['station_info'])
+    def load_data_bl(self, DATA_DIR):
+        data_test = DATA_DIR + "/new/data_test.mat"
+        self.data_test = scipy.io.loadmat(data_test)['data_test']
+        self.smp_cnt_test = self.data_test >= 0
+        print("loading data")
+        data_gt = DATA_DIR + "/new/data_gt_bl.obj"
+        smp_cnt = DATA_DIR + "/new/smp_cnt_bl.obj"
+        with open(data_gt, "rb") as input:
+            self.data_gt = pickle.load(input)
+        with open(smp_cnt, "rb") as input:
+            self.smp_cnt = pickle.load(input)
+        print("successfully load data")

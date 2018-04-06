@@ -30,7 +30,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "model"))
 from model import particle_filter, baselines
 from util.geo import deg2km
 from util.data_helper import data_schema
-from util.visualize import show_result
+from util.visualize import show_result, calc_rel_error_bl
 
 ROOT_DIR = os.path.abspath(os.path.join(__file__, os.pardir))
 CONF_DIR = ROOT_DIR + "/conf"
@@ -50,11 +50,11 @@ class Scheduler():
         self.lat_max = conf['lat_max']
 
         self.res_s = conf['res_s']
-        self.n_lon = np.int(np.ceil(deg2km(self.lon_max-self.lon_min) / self.res_s * 1000))
-        self.n_lat = np.int(np.ceil(deg2km(self.lat_max-self.lat_min) / self.res_s * 1000))
+        # self.n_lon = np.int(np.ceil(deg2km(self.lon_max-self.lon_min) / self.res_s * 1000))
+        # self.n_lat = np.int(np.ceil(deg2km(self.lat_max-self.lat_min) / self.res_s * 1000))
+        # self.l = self.res_s
         self.n_lon = 12
         self.n_lat = 60
-        # self.l = self.res_s
         self.pct_gt = conf['pct_gt']
         self.pct_mat = [conf['pct_pred'], conf['pct_corr'], conf['pct_veri']]
         self.gas_max_val = conf['gas_max_val']
@@ -93,19 +93,20 @@ class Scheduler():
         show_result(self.data, self.n_time)
 
     def baseML_run(self, conf):
+        self.data.load_data_bl(DATA_DIR)
         # select the data for pollution map reconstruction and calibrate the data
         i_t = 0
         bl = baselines(conf, self.flag_empty, self.pct_mat, self.date_min, self.date_max, self.n_lat, self.n_lon, self.data)
 
-        print "start run iteration"
-        print "self.n_time: " + str(self.n_time)
-        print self.n_time
         while i_t < self.n_time:
             print i_t
-            bl.run_iter(i_t)
+            bl.run_iter_new(i_t)
             i_t += 1
-        with open(r"data_baselines.obj", "wb") as output:
-             pickle.dump(self.data, output)
+        # with open(r"data_baselines.obj", "wb") as output:
+        #      pickle.dump(self.data, output)
+        calc_rel_error_bl("gp", self.data.data_test[3:], self.data.x_est_gp, self.data.smp_cnt_test[3:], self.n_time)
+        calc_rel_error_bl("ann", self.data.data_test[3:], self.data.x_est_ann, self.data.smp_cnt_test[3:], self.n_time)
+        calc_rel_error_bl("dd", self.data.data_test[3:], self.data.x_est_dd, self.data.smp_cnt_test[3:], self.n_time)
 
     def save(self):
         with open(self.result_path, "w") as f:

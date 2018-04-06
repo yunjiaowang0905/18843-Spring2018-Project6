@@ -1,8 +1,8 @@
 sys:
   file_str: "../data/raw_data.dat" # path to raw data
   car_no: 29 # number of cars
-  date_min: "2016-12-22 11:00:00" # start date of estimation
-  date_max: "2016-12-25 11:00:00" # end date of estimation
+  date_min: "2016-12-20 11:00:00" # start date of estimation
+  date_max: "2016-12-22 11:00:00" # end date of estimation
   t_min: 0 # start hour of one day
   t_max: 24 # end hour of one day
   rest_t: 1 # time resolution, duration of timestep

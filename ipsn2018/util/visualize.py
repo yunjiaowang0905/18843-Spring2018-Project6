@@ -82,6 +82,17 @@ def calc_rel_error(alg, truth, pred, smp, n_time):
         i_t += 1
     print(alg + " average rel error % f\n" % np.mean(total_err))
 
+def calc_rel_error_bl(alg, truth, pred, smp, n_time):
+    i_t = 0
+    total_err = []
+    while i_t < n_time-3:
+        error, val = get_rel_error(np.reshape(truth[i_t], (12, 60)), pred[i_t], np.reshape(smp[i_t], (12, 60)))
+        # show_map(error, alg + " abs error" + str(i_t))
+        #print("average relative error for time %d: %f\n" % (i_t, val))
+        total_err += val
+        i_t += 1
+    print(alg + " average rel error % f\n" % np.mean(total_err))
+
 def get_rel_error(truth, pred, smp_count):
     row, col = pred.shape
     total = []
