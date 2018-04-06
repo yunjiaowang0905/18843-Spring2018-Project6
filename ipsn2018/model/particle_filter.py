@@ -232,7 +232,7 @@ class particle_filter(object):
         estimation = weighted average of all particles
         """
         self.data.x_P_adp[i_t] = self.data.x_P_update
-        col, row = np.nonzero(self.data.pf_upd_flag_adp[i_t] > 0.3)
+        col, row = np.nonzero(self.data.pf_upd_flag_adp[i_t] > 0.1)
         print(len(col))
         for i_x, i_y in zip(row, col):
             # P_w_cur = self.data.P_w_adp[i_t][:, i_y, i_x].reshape((self.N_pf, 1, 1)).copy()
