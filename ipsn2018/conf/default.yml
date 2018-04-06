@@ -31,3 +31,17 @@ particle_filter:
   K: 100 # diffusion coefficients
   vx: 0 # wind velocity
   vy: 0 # wind velocity
+base_line:
+  t_len_his: 3
+  flag_range_lim: 0
+  t_min: 0
+  t_max: 24
+  lon_min: 113.8668
+  lon_max: 114.1538
+  lat_min: 22.5150
+  lat_max: 22.5868
+  res_t: 1
+  alg_sep: 2
+  car_no: 29
+  gas_max_val: 60
+  pct_gt: 0.4

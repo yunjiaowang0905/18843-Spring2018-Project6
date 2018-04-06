@@ -1,18 +1,19 @@
 __author__ = 'Nanshu Wang'
 import numpy as np
 import scipy.io
+import pickle
 
 class data_schema():
-    def __init__(self, n_time):
-        self.data_gt = [[] for _ in range(n_time)]   # ground truth data
-        self.data_pre = [[] for _ in range(n_time)]  # data for prediction
-        self.data_upd = [[] for _ in range(n_time)]  # data for update
-        self.data_ver = [[] for _ in range(n_time)]  # data for online verification  --- will be modified
+    def __init__(self, n_time, n_lat, n_lon):
+        self.data_gt = [np.zeros((n_lat, n_lon)) for _ in range(n_time)]   # ground truth data
+        self.data_pre = [np.zeros((n_lat, n_lon)) for _ in range(n_time)]  # data for prediction
+        self.data_upd = [np.zeros((n_lat, n_lon)) for _ in range(n_time)]  # data for update
+        self.data_ver = [np.zeros((n_lat, n_lon)) for _ in range(n_time)]  # data for online verification  --- will be modified
         self.smp_cnt = [[] for _ in range(n_time)]
-        self.smp_cnt_gt = [[] for _ in range(n_time)]
-        self.smp_cnt_pre = [[] for _ in range(n_time)]
-        self.smp_cnt_upd= [[] for _ in range(n_time)]
-        self.smp_cnt_ver = [[] for _ in range(n_time)]
+        self.smp_cnt_gt = [np.zeros((n_lat, n_lon)) for _ in range(n_time)]
+        self.smp_cnt_pre = [np.zeros((n_lat, n_lon)) for _ in range(n_time)]
+        self.smp_cnt_upd= [np.zeros((n_lat, n_lon)) for _ in range(n_time)]
+        self.smp_cnt_ver = [np.zeros((n_lat, n_lon)) for _ in range(n_time)]
         self.data_upd_interp = [{} for _ in range(n_time)]   # compensated data
 
         # for just prediction
@@ -52,14 +53,19 @@ class data_schema():
         self.min_idx = [{} for _ in range(n_time)]
 
         # for data-driven method
-        self.x_est_dd = [{} for _ in range(n_time)]
-        self.eva_re_err_dd = [{} for _ in range(n_time)]
-        self.x_est_ann = [{} for _ in range(n_time)]
-        self.eva_re_err_ann = [{} for _ in range(n_time)]
-        self.x_est_gp = [{} for _ in range(n_time)]
-        self.eva_re_err_gp = [{} for _ in range(n_time)]
+        self.x_est_dd = [np.zeros((n_lat, n_lon)) for _ in range(n_time)]
+        self.eva_re_err_dd = [[] for _ in range(n_time)]
+        self.x_est_ann = [np.zeros((n_lat, n_lon)) for _ in range(n_time)]
+        self.eva_re_err_ann = [[] for _ in range(n_time)]
+        self.x_est_gp = [np.zeros((n_lat, n_lon)) for _ in range(n_time)]
+        self.eva_re_err_gp = [[] for _ in range(n_time)]
 
         self.data_station_all= np.zeros((n_time, 5))
+
+    def save(self, DATA_DIR):
+        path = DATA_DIR + "/result/data_baselines"
+        file_handler = open(path, 'wb')
+        pickle.dump(self, file_handler)
 
     def load_from_mat(self, DATA_DIR):
         # TODO load data from specific directory
