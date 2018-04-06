@@ -40,7 +40,8 @@ class Scheduler():
         self.date_max = datetime.strptime(conf['date_max'], "%Y-%m-%d %H:%M:%S")
         self.res_t = conf['res_t']
         # self.n_time = (self.date_max-self.date_min).seconds / 3600 / self.res_t
-        self.n_time = (self.date_max-self.date_min).days * 24 / self.res_t
+        # self.n_time = (self.date_max-self.date_min).days * 24 / self.res_t
+        self.n_time = 5000
 
         self.lon_min = conf['lon_min']
         self.lon_max = conf['lon_max']
@@ -48,9 +49,11 @@ class Scheduler():
         self.lat_max = conf['lat_max']
 
         self.res_s = conf['res_s']
-        self.n_lon = np.int(np.ceil(deg2km(self.lon_max-self.lon_min) / self.res_s * 1000))
-        self.n_lat = np.int(np.ceil(deg2km(self.lat_max-self.lat_min) / self.res_s * 1000))
+        # self.n_lon = np.int(np.ceil(deg2km(self.lon_max-self.lon_min) / self.res_s * 1000))
+        # self.n_lat = np.int(np.ceil(deg2km(self.lat_max-self.lat_min) / self.res_s * 1000))
         # self.l = self.res_s
+        self.n_lon = 60
+        self.n_lat = 12
         self.pct_gt = conf['pct_gt']
         self.pct_mat = [conf['pct_pred'], conf['pct_corr'], conf['pct_veri']]
         self.gas_max_val = conf['gas_max_val']
@@ -80,12 +83,16 @@ class Scheduler():
         i_t = 0
         bl = baselines(conf, self.flag_empty, self.pct_mat, self.date_min, self.date_max, self.n_lat, self.n_lon, self.data)
 
-        print "start run iteration"
-        print "self.n_time: " + str(self.n_time)
-        print self.n_time
+        # print "start run iteration"
+        # print "self.n_time: " + str(self.n_time)
+        # print self.n_time
+        # while i_t < self.n_time:
+        #     print i_t
+        #     bl.run_iter(i_t)
+        #     i_t += 1
         while i_t < self.n_time:
             print i_t
-            bl.run_iter(i_t)
+            bl.new_data_gt(i_t)
             i_t += 1
         with open(r"data_baselines.obj", "wb") as output:
              pickle.dump(self.data, output)

@@ -5,11 +5,12 @@ import pickle
 
 class data_schema():
     def __init__(self, n_time, n_lat, n_lon):
+        self.new_data_gt = {}
+        self.smp_cnt = {}
         self.data_gt = [np.zeros((n_lat, n_lon)) for _ in range(n_time)]   # ground truth data
         self.data_pre = [np.zeros((n_lat, n_lon)) for _ in range(n_time)]  # data for prediction
         self.data_upd = [np.zeros((n_lat, n_lon)) for _ in range(n_time)]  # data for update
         self.data_ver = [np.zeros((n_lat, n_lon)) for _ in range(n_time)]  # data for online verification  --- will be modified
-        self.smp_cnt = [[] for _ in range(n_time)]
         self.smp_cnt_gt = [np.zeros((n_lat, n_lon)) for _ in range(n_time)]
         self.smp_cnt_pre = [np.zeros((n_lat, n_lon)) for _ in range(n_time)]
         self.smp_cnt_upd= [np.zeros((n_lat, n_lon)) for _ in range(n_time)]
