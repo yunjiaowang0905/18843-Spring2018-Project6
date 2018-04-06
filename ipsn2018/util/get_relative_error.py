@@ -12,10 +12,10 @@ def get_relative_error(x_est_cur, data_gt_cur, smp_cnt_gt_cur, flag, n_lat, n_lo
         flag: if flag == 1, get relative error, if flag == 0, get absolute error
     """
     re_err_cur = np.zeros((n_lat, n_lon))
-    idx = np.nonzero(smp_cnt_gt_cur)
+    idx = np.nonzero(smp_cnt_gt_cur > 0)
     if idx[0].size:
         if flag:
-            re_err_cur[idx] = abs(x_est_cur[idx] - data_gt_cur[idx]) / data_gt_cur[idx]
+            re_err_cur[idx] = abs(x_est_cur[idx] - data_gt_cur[idx]) / (data_gt_cur[idx] + 1e-10)
         else:
             re_err_cur[idx] = x_est_cur[idx] - data_gt_cur[idx]
     return re_err_cur

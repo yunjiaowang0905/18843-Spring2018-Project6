@@ -16,7 +16,6 @@ sys.path.insert(0, os.path.abspath(".."))
 
 from util import rcd2grid, limit_range, get_dd_result
 from util.get_relative_error import get_relative_error
-from util.get_dd_result_new_data import get_dd_result_new_data
 DATA_DIR = "/Users/melody/18843-Spring2018-Project6/ipsn2018/data"
 
 class baselines(object):
@@ -62,7 +61,7 @@ class baselines(object):
         self.station_data_slt = None
 
         #self.data_selection()
-        self.data_pre_sep()
+        # self.data_pre_sep()
 
 
     def data_pre_slt(self, file_path):
@@ -156,8 +155,6 @@ class baselines(object):
         """
 
         # selection ground
-        print("data_in")
-        print(data_in)
         row, col = np.nonzero(self.data.smp_cnt[i_t])
         n_val = len(row)
 
@@ -363,45 +360,39 @@ class baselines(object):
         #         - repmat(np.transpose(ds_cur), 1, 3))/repmat(np.transpose(ds_cur), 1, 3)
         #     self.data.data_station_all[i_t] = ds_cur
 
-    def data_pre_sep(self):
-        with open('/Users/melody/Downloads/distribution_res_newArea.csv') as csvfile:
-            readCSV = csv.reader(csvfile)
-            for row in readCSV:
-                time_f, lon_f, lat_f, gas_f = row
-                time = int(float(time_f))
-                lat = int(float(lat_f))
-                lon = int(float(lon_f))
-                gas = float(gas_f)
-                if time not in self.data.new_data_gt:
-                    self.data.new_data_gt[time] = np.zeros((self.n_lat, self.n_lon))
-                    self.data.smp_cnt[time] = np.zeros((self.n_lat, self.n_lon))
-                print(time)
-                self.data.new_data_gt[time][lat][lon] = gas
-                if gas > -1:
-                    self.data.smp_cnt[time][lat][lon] = 1
-
-        with open(r"data_bl.obj", "wb") as output:
-            pickle.dump(self.data, output)
+    # def data_pre_sep(self):
+    #     with open('/Users/melody/Downloads/distribution_res_newArea.csv') as csvfile:
+    #         readCSV = csv.reader(csvfile)
+    #         for row in readCSV:
+    #             time_f, lon_f, lat_f, gas_f = row
+    #             time = int(float(time_f))
+    #             lat = int(float(lat_f))
+    #             lon = int(float(lon_f))
+    #             gas = float(gas_f)
+    #             if time not in self.data.new_data_gt:
+    #                 self.data.new_data_gt[time] = np.zeros((self.n_lat, self.n_lon))
+    #                 self.data.smp_cnt[time] = np.zeros((self.n_lat, self.n_lon))
+    #             print(time)
+    #             self.data.new_data_gt[time][lat][lon] = gas
+    #             if gas > -1:
+    #                 self.data.smp_cnt[time][lat][lon] = 1
+    #
+    #     with open(r"data_bl.obj", "wb") as output:
+    #         pickle.dump(self.data, output)
 
     def get_all_result(self, i_t):
-        self.data_seperation(self.data.new_data_gt[i_t], i_t)
+        self.data_seperation(self.data.data_gt[i_t], i_t)
         print("data_seperation finished")
 
         # get the round truth when the data is flag_empty
 
         # get result for data driven method
         data_tr = [sum(x) for x in zip(self.data.data_pre[i_t], self.data.data_upd[i_t], self.data.data_ver[i_t])] # for numpy array: data.data_pre[i_t] + data.data_udp[i_t] + data.data_ver[i_t]
-        print "data_tr"
-        print data_tr
-        print("get get_dd_result: " + str(i_t))
         self.data.x_est_dd[i_t] = get_dd_result(data_tr, self.n_lat, self.n_lon)
 
-        print(self.flag_empty)
         if not self.flag_empty:
             if (np.count_nonzero(self.data.x_est_dd[i_t]) / (self.n_lat * self.n_lon)) <= 0.2:
                 idx = self.data.x_est_dd[i_t] == 0
-                print("idx")
-                print(idx)
                 if i_t > 0:
                     self.data.x_est_dd[i_t][idx] = self.data.x_est_dd[i_t - 1][idx]
 
@@ -422,13 +413,13 @@ class baselines(object):
                     row, col = idx
                     inputs_cur = np.c_[t_cur * np.ones(len(row)), row, col]
                     inputs = np.r_[inputs, inputs_cur]
-                    targets = np.c_[targets, self.data.data_gt[t_cur][idx]]
+                    targets = np.r_[targets, np.reshape(self.data.data_gt[t_cur][idx], (len(row), 1))]
 
             # get interpolation results
             self.data.x_est_dd[i_t] = sum_dd / self.t_len_his
 
             x_mat = np.tile(np.arange(0, self.n_lat), self.n_lon)
-            y_mat = np.repeate(np.arange(0, self.n_lon), self.n_lat)
+            y_mat = np.repeat(np.arange(0, self.n_lon), self.n_lat)
             test_input = np.c_[i_t * np.ones(self.n_lon * self.n_lat), x_mat, y_mat]
 
             # train the neural networking
@@ -448,16 +439,15 @@ class baselines(object):
 
 
     def run_iter_new(self, i_t):
-        data_cur = self.data.new_data_gt[i_t]
+        data_cur = self.data.data_gt[i_t]
         idx = np.nonzero(data_cur > 0)
         if idx[0].size:
             self.flag_empty = False
         else:
             self.flag_empty = True
         self.get_all_result(i_t)
-        self.data.eva_re_err_dd[i_t] = get_relative_error(self.data.x_est_dd[i_t], self.data.new_data_gt[i_t], self.data.smp_cnt_gt[i_t], True, self.n_lat, self.n_lon)
+        self.data.eva_re_err_dd[i_t] = get_relative_error(self.data.x_est_dd[i_t], self.data.data_gt[i_t], self.data.smp_cnt_gt[i_t], True, self.n_lat, self.n_lon)
         print ("compute error: " + str(i_t))
-        print (self.data.eva_re_err_dd[i_t])
         self.data.eva_re_err_ann[i_t] = get_relative_error(self.data.x_est_ann[i_t], self.data.data_gt[i_t], self.data.smp_cnt_gt[i_t], True, self.n_lat, self.n_lon)
         self.data.eva_re_err_gp[i_t] = get_relative_error(self.data.x_est_gp[i_t], self.data.data_gt[i_t], self.data.smp_cnt_gt[i_t], True, self.n_lat, self.n_lon)
 
