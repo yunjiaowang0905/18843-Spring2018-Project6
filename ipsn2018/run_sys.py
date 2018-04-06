@@ -20,6 +20,7 @@ import sys
 import yaml
 import docopt
 import numpy as np
+import pickle
 from datetime import datetime, timedelta
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "util"))
@@ -37,7 +38,7 @@ class Scheduler():
     def __init__(self, conf):
         self.date_min = datetime.strptime(conf['date_min'], "%Y-%m-%d %H:%M:%S")
         self.date_max = datetime.strptime(conf['date_max'], "%Y-%m-%d %H:%M:%S")
-        self.res_t = conf['rest_t']
+        self.res_t = conf['res_t']
         # self.n_time = (self.date_max-self.date_min).seconds / 3600 / self.res_t
         self.n_time = (self.date_max-self.date_min).days * 24 / self.res_t
 
@@ -86,6 +87,8 @@ class Scheduler():
             print i_t
             bl.run_iter(i_t)
             i_t += 1
+        with open(r"data_baselines.obj", "wb") as output:
+             pickle.dump(self.data, output)
 
 if __name__ == "__main__":
     args = docopt.docopt(__doc__)

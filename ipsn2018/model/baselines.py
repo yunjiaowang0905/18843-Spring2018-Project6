@@ -8,7 +8,8 @@ from scipy.interpolate import interp1d
 from scipy.spatial.distance import cdist
 from math import pi
 from datetime import datetime, timedelta
-from sklearn.neural_network import MLPClassifier
+from sklearn.neural_network import MLPRegressor
+from sklearn.gaussian_process import GaussianProcessRegressor
 sys.path.insert(0, os.path.abspath(".."))
 
 from util import rcd2grid, limit_range, get_dd_result
@@ -38,7 +39,7 @@ class baselines(object):
         self.flag_range_lim =   conf['flag_range_lim']
         self.pct_gt = conf['pct_gt']
         self.t_len_his = conf['t_len_his']
-        self.res_t = conf['rest_t']
+        self.res_t = conf['res_t']
         self.alg_sep = conf['alg_sep']
         self.lon_min = conf['lon_min']
         self.lon_max = conf['lon_max']
@@ -303,34 +304,37 @@ class baselines(object):
             sum_dd = np.zeros((self.n_lat, self.n_lon))
             # Creating a fitting network
 
-            inputs = []
-            targets = []
-            for t_cur in range (i_t - self.t_len_his, i_t - 1):
+            inputs = np.empty((0, 3), int)
+            targets = np.empty((0, 1))
+            for t_cur in range (i_t - self.t_len_his, i_t):
                 print(t_cur)
                 sum_dd = sum_dd + self.data.x_est_dd[t_cur]
                 smp_cnt_gt_cur = self.data.smp_cnt_gt[t_cur]
                 print(type(smp_cnt_gt_cur))
                 idx = np.nonzero(smp_cnt_gt_cur > 0)
                 if idx[0].size: #row index
-                    pass
-                    #TODO test
-                    #row, col = idx
-                    #inputs_cur = np.c_[t_cur*np.ones(len(row)), row, col]
-                    #input = np.c_[inputs, inputs_cur]
-                    #targets = np.c_[targets, self.data_gt[t_cur][idx]]
+                    row, col = idx
+                    inputs_cur = np.c_[t_cur*np.ones(len(row)), row, col]
+                    inputs = np.r_[inputs, inputs_cur]
+                    targets = np.c_[targets, self.data.data_gt[t_cur][idx]]
 
             # get interpolation results
-            #self.data.x_est_dd[i_t] = sum_dd/self.t_len_his
+            self.data.x_est_dd[i_t] = sum_dd/self.t_len_his
 
+            x_mat = np.tile(np.arange(0, self.n_lat), self.n_lon)
+            y_mat = np.repeate(np.arange(0, self.n_lon), self.n_lat)
+            test_input = np.c_[i_t * np.ones(self.n_lon * self.n_lat), x_mat, y_mat]
 
+            # train the neural networking
+            ann = MLPRegressor(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(10, 1), random_state=1)
+            ann.fit(inputs, targets.flatten())
+            self.data.x_est_ann[i_t] = np.reshape(ann.predict(test_input), (self.n_lat, self.n_lon))
 
-            # TODO: train the neural networking
-            # clf = MLPClassifier(solver='lbfgs', alpha=1e-5, \
-            #          hidden_layer_sizes=(10, 1), random_state=1)
-            # clf.fit(inputs, targets)
-            # clf.predict([[2., 2.], [-1., -2.]])
+            # train the Gaussian gaussian_process
+            gp = GaussianProcessRegressor()
+            gp.fit(inputs, targets.flatten())
+            self.data.x_est_gp[i_t] = np.reshape(gp.predict(test_input), (self.n_lat, self.n_lon))
 
-            # TODO: train the Gaussian gaussian_process
 
         if self.flag_range_lim:
             limit_range(self.data.x_est_dd[i_t], 0, self.pre_max_val)
