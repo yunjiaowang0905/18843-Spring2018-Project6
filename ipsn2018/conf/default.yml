@@ -1,0 +1,47 @@
+sys:
+  file_str: "../data/raw_data.dat" # path to raw data
+  car_no: 29 # number of cars
+  date_min: "2016-12-22 11:00:00" # start date of estimation
+  date_max: "2016-12-23 11:00:00" # end date of estimation
+  t_min: 0 # start hour of one day
+  t_max: 24 # end hour of one day
+  rest_t: 1 # time resolution, duration of timestep
+  lon_min: 113.8668 # minimum longtitude
+  lon_max: 114.1538 # maximum longtitude
+  lat_min: 22.5150 # minimum latitude
+  lat_max: 22.5868 # maximum latitude
+  res_s: 500 # space solution, map is divided as res_x * res_x blocks
+  pct_gt: 0.4 # percentage of data used as ground truth
+  pct_pred: 0 # percentage of data used as prediction
+  pct_corr: 1 # percentage of data used as correction
+  pct_veri: 0 # percentage of data used as verification
+  gas_max_val: 60 # maximum number of gas(i.e., prediction number)
+  flag_range_lim: 0 # boolean, true if we limit the range of prediction
+  result_path: "data/result_olddata.pf"
+particle_filter:
+  x_N_pf: 0.5710 # process noise with gaussian distribution in the state update
+  x_R_pf: 0.5710 # Noise covariance in the measurement
+  N_pf: 100 # number of particles
+  alg_upd: 4 # update algorithm
+  alg_sep: 2 #
+  t_len_his: 3 # number of history data for online estimation
+  ver_re_err_th: 0.1 # relative error threshold for verification
+  ver_var_th: 0.2 # ???
+  gas_max_val: 60 # maximum number of gas(i.e., prediction number)
+  K: 100 # diffusion coefficients
+  vx: 0 # wind velocity
+  vy: 0 # wind velocity
+base_line:
+  t_len_his: 3
+  flag_range_lim: 0
+  t_min: 0
+  t_max: 24
+  lon_min: 113.8668
+  lon_max: 114.1538
+  lat_min: 22.5150
+  lat_max: 22.5868
+  res_t: 1
+  alg_sep: 2
+  car_no: 29
+  gas_max_val: 60
+  pct_gt: 0.4
