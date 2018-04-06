@@ -9,9 +9,11 @@ from scipy.sparse import bsr_matrix
 from scipy.spatial.distance import cdist
 from scipy.ndimage.morphology import binary_dilation, generate_binary_structure
 from scipy.ndimage import iterate_structure
+from util.tomPhy import predictTimeSlice
+from util.correction_strategy import predictFlag
 sys.path.insert(0, os.path.abspath(".."))
 
-from util import getA_c, get_par2, cvx_solve_u, get_next_state, limit_range
+from util import getA_c, get_par2, get_next_state, limit_range
 
 class particle_filter(object):
     """Particle Filter
@@ -73,7 +75,7 @@ class particle_filter(object):
         self.B = bsr_matrix(self.B)
 
         self.flag_range_lim = 1
-        self.pre_max_val = 10
+        self.pre_max_val = 2541
         self.flag_cal_feature = 1
 
     def generate_observation(self, i_t):
@@ -86,16 +88,19 @@ class particle_filter(object):
         x_P_update[i, j, k] denote the ith particle value for subarea (j,k)
         C[k + 1] = AC[k] + BU[k]
         """
-        est_history = self.data.x_est_adp[i_t-self.t_len_his:i_t]
-        u_mat_tmp = get_par2(self.coe_matrix, self.B, est_history)
-        self.data.u_mat_adp[i_t] = u_mat_tmp
+        # est_history = self.data.x_est_adp[i_t-self.t_len_his:i_t]
+        # u_mat_tmp = get_par2(self.coe_matrix, self.B, est_history)
+        # self.data.u_mat_adp[i_t] = u_mat_tmp
         self.data.x_P_update = np.zeros((self.N_pf, self.n_lat, self.n_lon))
-
+        gp = self.data.x_est_gp
+        pred = predictTimeSlice(gp[i_t-2], gp[i_t-1], gp[i_t], self.data.data_train[i_t])
         # update each particle filter with previous value
         for i_pf in range(self.N_pf):
-            x_est_pre = self.data.x_P_adp[i_t-1][i_pf,:,:]
-            self.data.x_P_update[i_pf, :, :] = get_next_state(self.A, self.B, x_est_pre, u_mat_tmp,self.coe_matrix) \
-                                               + np.sqrt(self.x_N_pf) * np.random.randn(self.n_lat, self.n_lon)
+            # x_est_pre = self.data.x_P_adp[i_t-1][i_pf,:,:]
+            # self.data.x_P_update[i_pf, :, :] = get_next_state(self.A, self.B, x_est_pre, u_mat_tmp,self.coe_matrix) \
+            #                                    + np.sqrt(self.x_N_pf) * np.random.randn(self.n_lat, self.n_lon)
+
+            self.data.x_P_update[i_pf,:,:] = pred + np.sqrt(self.x_N_pf) * np.random.randn(self.n_lat, self.n_lon)
 
         if self.flag_range_lim == 1:    # range control
             self.data.x_P_update = limit_range(self.data.x_P_update, 0, self.pre_max_val)
@@ -152,12 +157,12 @@ class particle_filter(object):
                     entropy[i_y, i_x] = self.estimation_entropy(Pw_cur, x_cur)
 
             # normalization
-            distance = (distance - 8) / 24 / 2
-            entropy = entropy / 8
+            distance = distance
+            entropy = entropy
 
         return distance, entropy
 
-    def get_upd_flag(self, i_t):
+    def get_upd_flag(self, i_t, alg_upd=3):
         """
         :param i_t:
         :param distance: sum of M nearest neighbours' distances, D
@@ -172,30 +177,20 @@ class particle_filter(object):
 
         # need to be modified
         # all areas update
-        if self.alg_upd == 1:
+        if alg_upd == 1:
             pf_upd_flag = np.ones((self.n_lat, self.n_lon))
         # update the collected data areas
-        elif self.alg_upd == 2:
+        elif alg_upd == 2:
             idx = self.data.smp_cnt_upd[i_t]>0
             pf_upd_flag[idx] = 1
         # update collected data areas + good compensated data areas + dilation --- need to modify
-        elif self.alg_upd == 3:
-            # didn't make sense
-            # idx = self.data.ver_re_err_adp[i_t-1] >= self.ver_re_err_th
-            # pf_upd_flag[idx] = 1
-
+        elif alg_upd == 3:
             idx = np.nonzero(self.data.smp_cnt_upd[i_t] > 0)
             pf_upd_flag[idx] = 1
 
-            # didn't make sense
-            # idx = np.nonzero(self.data.ver_var_adp[i_t-1] >= self.ver_var_th)
-            # pf_upd_flag[idx] = 1
-
-            # idx = np.nonzero(pf_upd_flag > 0)
             struct = generate_binary_structure(2, 1) # se = strel('square',3);
             se = iterate_structure(struct, 3).astype(int)
-            pf_upd_flag = binary_dilation(pf_upd_flag, structure=struct)
-            # use ver_re_err and ver_var at i_t - 1 to get the update flag matrix
+            pf_upd_flag = binary_dilation(pf_upd_flag, structure=struct).astype(float)
         # for adaptive scheme
         elif self.alg_upd == 4:
             distance, entropy = self.calculate_feature(i_t)
@@ -204,7 +199,13 @@ class particle_filter(object):
             pf_upd_flag[idx] = 1
             idx1 = self.data.smp_cnt_upd[i_t]>0
             pf_upd_flag[idx1] = 1
-
+        elif self.alg_upd == 5:
+            idx = np.nonzero(self.data.smp_cnt_upd[i_t] > 0)
+            pf_upd_flag[idx] = 1
+            struct = generate_binary_structure(2, 1) # se = strel('square',3);
+            se = iterate_structure(struct, 3).astype(int)
+            pf_upd_flag = binary_dilation(pf_upd_flag, structure=se).astype(float)
+            pf_upd_flag = predictFlag(self.data.pf_upd_flag_adp[i_t-self.t_len_his:i_t], pf_upd_flag)
         return pf_upd_flag
 
     def update(self, i_t):
@@ -231,15 +232,16 @@ class particle_filter(object):
         estimation = weighted average of all particles
         """
         self.data.x_P_adp[i_t] = self.data.x_P_update
-        col, row = np.nonzero(self.data.pf_upd_flag_adp[i_t] == 1)
+        col, row = np.nonzero(self.data.pf_upd_flag_adp[i_t] > 0.3)
+        print(len(col))
         for i_x, i_y in zip(row, col):
-            P_w_cur = self.data.P_w_adp[i_t][:, i_y, i_x].reshape((self.N_pf, 1, 1)).copy()
-            x_P_update_cur = self.data.x_P_update[:, i_y, i_x]
+            # P_w_cur = self.data.P_w_adp[i_t][:, i_y, i_x].reshape((self.N_pf, 1, 1)).copy()
+            # x_P_update_cur = self.data.x_P_update[:, i_y, i_x]
             for i_pf in range(self.N_pf):
-                rand = random()
-                idx = np.nonzero(rand <= np.cumsum(P_w_cur))
-                self.data.x_P_adp[i_t][i_pf, i_y, i_x] = x_P_update_cur[idx][0]
-                # self.data.x_P_adp[i_t][i_pf, i_y, i_x] = self.data.data_upd_interp[i_t][i_y, i_x]
+            #     rand = random()
+            #     idx = np.nonzero(rand <= np.cumsum(P_w_cur))
+                # self.data.x_P_adp[i_t][i_pf, i_y, i_x] = x_P_update_cur[idx][0]
+                self.data.x_P_adp[i_t][i_pf, i_y, i_x] = self.data.x_est_gp[i_t][i_y][i_x] + np.sqrt(self.x_N_pf) * np.random.randn()
 
         if self.flag_range_lim==1:
             # this is only for CO value range limitation
@@ -255,7 +257,7 @@ class particle_filter(object):
                                  np.sqrt(self.V_pf) * np.random.randn(self.N_pf, self.n_lat, self.n_lon)
         self.data.x_est_adp[i_t] = X0
         self.data.P_w_adp[i_t] = np.ones((self.N_pf, self.n_lat, self.n_lon)) / self.N_pf
-        self.data.pf_upd_flag_adp[i_t] = np.zeros((self.n_lat, self.n_lon))
+        self.data.pf_upd_flag_adp[i_t] = self.get_upd_flag(i_t, 3)
         print("Initialization iteration")
 
     def flag_empty(self, i_t):
@@ -273,9 +275,9 @@ class particle_filter(object):
             self.predict(i_t)
             # self.data.x_P_update = np.transpose(self.data.x_P_adp[i_t], (2,0,1))
 
-            self.data.pf_upd_flag_adp[i_t] = self.get_upd_flag(i_t)
+            self.data.pf_upd_flag_adp[i_t] = self.get_upd_flag(i_t, self.alg_upd)
             self.update(i_t)
             self.resample(i_t)
 
-        self.flag_range_lim = 0
+        self.flag_range_lim = 1
 

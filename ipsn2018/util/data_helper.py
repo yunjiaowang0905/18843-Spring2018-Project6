@@ -84,8 +84,8 @@ class data_schema():
         self.x_est_gp = scipy.io.loadmat(data_interp_train)['data_interp_all']
         self.data_test = scipy.io.loadmat(data_test)['data_test']
         self.data_train = scipy.io.loadmat(data_train)['data_train']
-        self.smp_cnt_upd = self.data_train != -1
-        self.smp_cnt_test = self.data_test != -1
+        self.smp_cnt_upd = self.data_train > 0
+        self.smp_cnt_test = self.data_test > 0
 
         # path_station_loc = DATA_DIR + "/station_info.mat"
         # station_info = scipy.io.loadmat(DATA_DIR + "/data/station_info.mat")

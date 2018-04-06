@@ -15,20 +15,20 @@ sys:
   pct_pred: 0 # percentage of data used as prediction
   pct_corr: 1 # percentage of data used as correction
   pct_veri: 0 # percentage of data used as verification
-  gas_max_val: 60 # maximum number of gas(i.e., prediction number)
+  gas_max_val: 2541 # maximum number of gas(i.e., prediction number)
   flag_range_lim: 0 # boolean, true if we limit the range of prediction
   result_path: "data/result_olddata.pf"
 particle_filter:
-  x_N_pf: 0.5710 # process noise with gaussian distribution in the state update
-  x_R_pf: 0.5710 # Noise covariance in the measurement
+  x_N_pf: 0.1 # process noise with gaussian distribution in the state update
+  x_R_pf: 0.1 # Noise covariance in the measurement
   N_pf: 100 # number of particles
   alg_upd: 1 # update algorithm
   alg_sep: 2 #
   t_len_his: 3 # number of history data for online estimation
   ver_re_err_th: 0.1 # relative error threshold for verification
   ver_var_th: 0.2 # ???
-  gas_max_val: 60 # maximum number of gas(i.e., prediction number)
-  K: 100 # diffusion coefficients
+  gas_max_val: 2541 # maximum number of gas(i.e., prediction number)
+  K: 1 # diffusion coefficients
   vx: 0 # wind velocity
   vy: 0 # wind velocity
 base_line:
@@ -43,5 +43,5 @@ base_line:
   res_t: 1
   alg_sep: 2
   car_no: 29
-  gas_max_val: 60
+  gas_max_val: 2541
   pct_gt: 0.4

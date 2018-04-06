@@ -3,6 +3,7 @@ __author__ = 'Nanshu Wang'
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib import cm
+from util.tomPhy import getErrorRate
 
 def show_maps(preds, row, col, title, i_t, name):
     fig, axes = plt.subplots(row, col)
@@ -50,6 +51,8 @@ def show_result(data, n_time):
     # print(n_time)
     truth = data.data_test
     smp_count = data.smp_cnt_test
+    # print("adp", getErrorRate(truth[3:], data.x_est_adp[3:]))
+    # print("gp", getErrorRate(truth[3:], data.x_est_gp[3:]))
     calc_abs_error("adp", truth[3:], data.x_est_adp[3:], smp_count[3:], n_time)
     # calc_abs_error("ann", truth[3:], data.x_est_ann[3:], smp_count[3:], n_time)
     calc_abs_error("gp", truth[3:], data.x_est_gp[3:], smp_count[3:], n_time)
