@@ -5,7 +5,7 @@ import os
 
 def csv2mat(csv_path, mat_filename):
     min_time, max_time = 0, 6000
-    n_lat, n_lon = 73, 18
+    n_lat, n_lon = 60, 12
     data = []
 
     with open(csv_path) as fp:
@@ -20,14 +20,14 @@ def csv2mat(csv_path, mat_filename):
                 lat, lon, val = int(float(tokens[1])), int(float(tokens[2])), float(tokens[3])
                 data[time][lat, lon] = val
 
-        savemat(mat_filename, {'data_all': data})
+        savemat(mat_filename, {'data': data})
 
 
 if __name__ == "__main__":
     # TODO: change these file paths if necessary
-    csv_path = '../../distribution_Res.csv'
+    csv_path = '../../distribution_res.csv'
     mat_filename = '../matdata/data_all.mat'
-    
+
     csv2mat(csv_path, mat_filename)
 
     

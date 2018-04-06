@@ -32,7 +32,7 @@ def interpolate2d(data, interp_func='gaussian'):
 
 # Fill in missing data at each timestamp
 def interpolateAllData(mat_filename, mat_interp_filename):
-    data_all = loadmat(mat_filename)['data_all']
+    data_all = loadmat(mat_filename)['data']
     T, n_lat, n_lon = data_all.shape
 
     data_interp = []
@@ -40,25 +40,32 @@ def interpolateAllData(mat_filename, mat_interp_filename):
         data_curr = interpolate2d(data_all[i, :, :])
         data_interp.append(data_curr)
 
-    savemat(mat_interp_filename, {'data_interp_all': data_interp})
+    savemat(mat_interp_filename, {'data': data_interp})
+
+def createHeatmap(mat_filename, mat_interp_filename, t_max, interp_func='gaussian', save_file=True):
+    for i in range(t_max):
+        data = loadmat(mat_filename)['data'][i, :, :]
+        data_interp = interpolate2d(data)
+
+        data[np.where(data<0)] = float('nan')
+        plt.subplot(121)
+        plt.imshow(data, vmin=0, vmax=50, interpolation='nearest')
+        plt.subplot(122)
+        plt.imshow(data_interp, vmin=0, vmax=50, interpolation='nearest')
+
+        if save_file:
+            plt.savefig('../matdata/data_interp_{}_{}.jpg'.format(interp_func, i))
+        else:
+            plt.show()
+        plt.clf()
 
 if __name__ == "__main__":
     # TODO: change these file paths if necessary
-    mat_filename = '../matdata/data_all.mat'
-    mat_interp_filename = '../matdata/data_interp_all.mat'
+    mat_filename = '../matdata/data_train.mat'
+    mat_interp_filename = '../matdata/data_interp_train.mat'
 
     interpolateAllData(mat_filename, mat_interp_filename)
 
-    # for i in range(5):
-    #     data = loadmat(mat_filename)['data_all'][i, :, :]
-    #     data_interp = interpolate2d(data)
+    # createHeatmap(mat_filename, mat_interp_filename, 20)
 
-    #     data[np.where(data<0)] = float('nan')
-    #     plt.subplot(121)
-    #     plt.imshow(data, vmin=0, vmax=50, interpolation='nearest')
-    #     plt.subplot(122)
-    #     plt.imshow(data_interp, vmin=0, vmax=50, interpolation='nearest')
-    #     # plt.savefig('../matdata/data_interp_{}_{}.jpg'.format(interp_func, i))
-        
-    #     plt.show()
-    #     plt.clf()
+    
